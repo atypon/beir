@@ -1,0 +1,6 @@
+datasets:
+  - scifact
+  - trec-covid-beir
+  - fiqa
+  - quora
+datasets_path: datasets
