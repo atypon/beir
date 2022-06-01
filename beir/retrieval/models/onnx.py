@@ -5,7 +5,11 @@ from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 import numpy as np
 
 class OnnxBERT:
-    def __init__(self, onnx_filename: Union[str, Tuple], model_path: Union[str, Tuple] = None, sep: str = " ", **kwargs):
+    def __init__(self,
+                 onnx_filename: Union[str, Tuple],
+                 model_path: Union[str, Tuple] = None,
+                 sep: str = " ",
+                 **kwargs):
         self.sep = sep
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         session_options = SessionOptions()
@@ -23,20 +27,29 @@ class OnnxBERT:
                             providers=['CUDAExecutionProvider', 'CPUExecutionProvider'],
                             sess_options=session_options)
 
-    def encode_queries(self, queries: List[str]) -> Union[
+    def encode_queries(self, queries: List[str], batch_size: int) -> Union[
         List[List[float]], np.ndarray, List[float]]:
-        inputs = self.__create_ort_input(queries=queries)
-        return self.q_model.run([], inputs)[0]
+        batchified_queries = self.__batchify(queries=queries, batch_size=batch_size)
+        query_embeddings = []
+        for batch in batchified_queries:
+            inputs = self.__create_ort_input(queries=batch)
+            query_embeddings.append(self.q_model.run([], inputs)[0])
+        query_embeddings = np.asarray(query_embeddings)
+        return query_embeddings
 
-    def encode_corpus(self, corpus: List[Dict[str, str]]) -> Union[
+    def encode_corpus(self, corpus: List[Dict[str, str]], batch_size: int) -> Union[
         List[List[float]], np.ndarray, List[float]]:
         sentences = [(doc["title"] + self.sep + doc["text"]).strip() if "title" in doc else doc["text"].strip() for doc
                      in corpus]
-        inputs = self.__create_ort_input(queries=sentences)
-        return self.doc_model.run([], inputs)[0]
+        batchified_sentences = self.__batchify(queries=sentences, batch_size=batch_size)
+        corpus_embeddings = []
+        for batch in batchified_sentences:
+            inputs = self.__create_ort_input(queries=batch)
+            corpus_embeddings.append(self.doc_model.run([], inputs)[0])
+        corpus_embeddings = np.asarray(corpus_embeddings)
+        return corpus_embeddings
 
     def __tokenize_text(self, queries: List[str]) -> Tuple[np.ndarray, np.ndarray]:
-
         encoding = self.tokenizer(queries,
                                   return_token_type_ids=False,
                                   return_tensors='np',
@@ -54,3 +67,9 @@ class OnnxBERT:
             'attention_mask': list(ort_attention_mask)
         }
         return inputs
+
+    def __batchify(self, queries: List[str], batch_size: int) -> List[List[str]]:
+        batches = []
+        for i in range(0, len(queries), batch_size):
+            batches.append(queries[i:i + batch_size])
+        return batches

@@ -58,7 +58,7 @@ class DenseRetrievalExactSearch:
                 corpus[corpus_start_idx:corpus_end_idx],
                 batch_size=self.batch_size,
                 show_progress_bar=self.show_progress_bar, 
-                convert_to_tensor = self.convert_to_tensor
+                convert_to_tensor=self.convert_to_tensor
                 )
 
             #Compute similarites using either cosine-similarity or dot product
