@@ -33,7 +33,7 @@ class OnnxBERT:
         query_embeddings = []
         for batch in batchified_queries:
             inputs = self.__create_ort_input(queries=batch)
-            query_embeddings.append(self.q_model.run([], inputs)[0])
+            query_embeddings += list(self.q_model.run([], inputs)[0])
         query_embeddings = np.asarray(query_embeddings)
         return query_embeddings
 
@@ -45,7 +45,7 @@ class OnnxBERT:
         corpus_embeddings = []
         for batch in batchified_sentences:
             inputs = self.__create_ort_input(queries=batch)
-            corpus_embeddings.append(self.doc_model.run([], inputs)[0])
+            corpus_embeddings += list(self.doc_model.run([], inputs)[0])
         corpus_embeddings = np.asarray(corpus_embeddings)
         return corpus_embeddings
 
