@@ -21,6 +21,9 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=[
+	'scikit-learn==0.21.0',
+	'scipy==1.5.0',
+	'numpy==1.21.0',
         'sentence-transformers==2.0.0',
         'pytrec_eval',
         'faiss_cpu',
