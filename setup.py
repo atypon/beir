@@ -21,7 +21,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=[
-        'sentence-transformers',
+        'sentence-transformers==2.0.0',
         'pytrec_eval',
         'faiss_cpu',
         'elasticsearch==7.9.1',
