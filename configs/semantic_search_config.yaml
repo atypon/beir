@@ -4,3 +4,7 @@ datasets:
   - fiqa
   - quora
 datasets_path: datasets
+batch_size: 16
+onnx_filename: distilroberta_MNR_pca_256_fp16_optimized.onnx
+model_path: model
+score_function: cos_sim
