@@ -69,7 +69,7 @@ class OnnxBERT:
         encoding = self.tokenizer(queries,
                                   return_token_type_ids=False,
                                   return_tensors='np',
-                                  max_length=512,
+                                  max_length=256,
                                   truncation=True,
                                   padding='max_length')
         input_ids = encoding['input_ids']
@@ -87,5 +87,5 @@ class OnnxBERT:
     def __batchify(self, queries: List[str], batch_size: int) -> List[List[str]]:
         batches = []
         for i in range(0, len(queries), batch_size):
-            batches.append(queries[i:i + batch_size])
+            batches.append(queries[i: i+batch_size])
         return batches

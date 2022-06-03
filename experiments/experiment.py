@@ -43,38 +43,33 @@ class Experiment(object):
 
     def experiemnt_pipeline(self):
         for dataset in self.dataset_paths:
-            corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
-            results = self.retriever.retrieve(corpus=corpus, queries=queries)
-            ndcg, _map, recall, precision = self.retriever.evaluate(qrels=qrels,
-                                                                    results=results,
-                                                                    k_values=self.retriever.k_values)
-            ndcg = self.__rename_metrics(metric_score=ndcg)
-            _map = self.__rename_metrics(metric_score=_map)
-            recall = self.__rename_metrics(metric_score=recall)
-            precision = self.__rename_metrics(metric_score=precision)
-            print('Results for', dataset)
-            self.__tract_metric(dataset=dataset,
-                                metric_name='ndcg',
-                                metric_score=ndcg)
-            print('NDCG:', ndcg)
-            self.__tract_metric(dataset=dataset,
-                                metric_name='recall',
-                                metric_score=recall)
-            print("Recall:", recall)
-            self.__tract_metric(dataset=dataset,
-                                metric_name='precision',
-                                metric_score=precision)
-            print('Precision:', precision)
-            self.__tract_metric(dataset=dataset,
-                                metric_name='map',
-                                metric_score=_map)
-            print('MAP:', _map)
+            try:
+                corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
+                results = self.retriever.retrieve(corpus=corpus, queries=queries)
+                ndcg, _map, recall, precision = self.retriever.evaluate(qrels=qrels,
+                                                                        results=results,
+                                                                        k_values=self.retriever.k_values)
+                ndcg = self.__rename_metrics(metric_score=ndcg)
+                _map = self.__rename_metrics(metric_score=_map)
+                recall = self.__rename_metrics(metric_score=recall)
+                precision = self.__rename_metrics(metric_score=precision)
+                flatten_metrics = self.__concat_metrics(ndcg=ndcg,
+                                                        recall=recall,
+                                                        _map=_map,
+                                                        precision=precision)
+                self.__tract_metric(dataset=dataset, metric_score=flatten_metrics)
+                print('Results for', dataset)
+                print('NDCG:', ndcg)
+                print("Recall:", recall)
+                print('Precision:', precision)
+                print('MAP:', _map)
+            except:
+                print('There is an error in this dataset:', dataset)
 
     def __tract_metric(self,
                        dataset: str,
-                       metric_name: str,
                        metric_score: Dict[str, float]):
-        with mlflow.start_run(experiment_id=self.experiment_id, run_name=dataset + '_' + metric_name):
+        with mlflow.start_run(experiment_id=self.experiment_id, run_name=dataset):
             mlflow.log_metrics(metric_score)
 
     def __rename_metrics(self, metric_score: Dict[str, float]) -> Dict[str, float]:
@@ -82,3 +77,13 @@ class Experiment(object):
         for metric, score in metric_score.items():
             renamed_metric[metric.replace('@', '_')] = score
         return renamed_metric
+
+    def __concat_metrics(self,
+                         ndcg: Dict[str, float],
+                         recall: Dict[str, float],
+                         _map: Dict[str, float],
+                         precision: Dict[str, float]) -> Dict[str, float]:
+        flatten_metrics = {}
+        for metric in (ndcg, recall, _map, precision):
+            flatten_metrics.update(metric)
+        return flatten_metrics
