@@ -21,7 +21,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=[
-        'protobuf=3.20.1'
+        'protobuf==3.20.1'
         'mlflow==1.24.0',
         'scikit-learn==0.21.0',
         'scipy==1.5.0',
