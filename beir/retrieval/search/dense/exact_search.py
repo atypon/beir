@@ -17,7 +17,7 @@ class DenseRetrievalExactSearch:
         self.score_function_desc = {'cos_sim': "Cosine Similarity", 'dot': "Dot Product"}
         self.corpus_chunk_size = corpus_chunk_size
         self.show_progress_bar = True #TODO: implement no progress bar if false
-        self.convert_to_tensor = True
+        self.convert_to_tensor = False
         self.results = {}
     
     def search(self, 
@@ -58,7 +58,7 @@ class DenseRetrievalExactSearch:
                 corpus[corpus_start_idx:corpus_end_idx],
                 batch_size=self.batch_size,
                 show_progress_bar=self.show_progress_bar, 
-                convert_to_tensor = self.convert_to_tensor
+                convert_to_tensor=self.convert_to_tensor
                 )
 
             #Compute similarites using either cosine-similarity or dot product

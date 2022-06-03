@@ -21,12 +21,17 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=[
-        'sentence-transformers',
+        'protobuf==3.20.1'
+        'scikit-learn==0.21.0',
+        'scipy==1.5.0',
+        'numpy==1.21.0',
+        'sentence-transformers==2.0.0',
         'pytrec_eval',
         'faiss_cpu',
-        'elasticsearch==7.9.1'
+        'elasticsearch==7.9.1',
+        'onnxruntime-gpu==1.9.0'
     ],
-    extras_require = optional_packages,
+    extras_require=optional_packages,
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
