@@ -3,12 +3,8 @@ datasets:
   - trec-covid-beir
   - fiqa
   - quora
-  #- climate-fever
-  - cqadupstack
-  #- fever
-  #- hotpotqa
   - nfcorpus
-  #- scidocs
+  - scidocs
   - webis-touche2020
 datasets_path: datasets
 batch_size: 16
