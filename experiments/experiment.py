@@ -97,12 +97,10 @@ class RerankExperiment(Experiment):
                  batch_size: int,
                  top_k: int,
                  score_function: str,
-                 es_index_names: List[str],
                  es_hostname: str,
                  initialize: bool,
                  mlflow_configs: Dict[str, str]):
         self.k = top_k
-        self.es_index_names = es_index_names
         self.es_hostname = es_hostname
         self.initialize = initialize
         super().__init__(datasets, datasets_path, onnx_model, batch_size, score_function, mlflow_configs)
@@ -116,7 +114,8 @@ class RerankExperiment(Experiment):
         for dataset in self.dataset_paths:
             try:
                 corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
-                bm25_retriever = self.__create_bm25_retriever(index_name=dataset)
+                index_name = dataset.replace('/', '_')
+                bm25_retriever = self.__create_bm25_retriever(index_name=index_name)
                 bm25_results = bm25_retriever.retrieve(corpus=corpus, queries=queries)
                 rerank_results = self.retriever.rerank(corpus=corpus,
                                                        queries=queries,

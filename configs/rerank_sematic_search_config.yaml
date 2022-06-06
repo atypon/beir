@@ -1,11 +1,11 @@
 datasets:
   - scifact
-  #- trec-covid-beir
-  #- fiqa
-  #- quora
-  #- nfcorpus
-  #- scidocs
-  #- webis-touche2020
+  - trec-covid-beir
+  - fiqa
+  - quora
+  - nfcorpus
+  - scidocs
+  - webis-touche2020
 datasets_path: datasets
 batch_size: 16
 onnx_filename: distilroberta_MNR_pca_256_fp16_optimized.onnx
@@ -17,4 +17,4 @@ mlflow:
 es:
   es_hostname: localhost
   initialize: True
-
+k: 100
