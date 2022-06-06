@@ -13,7 +13,7 @@ model_path: model
 score_function: cos_sim
 mlflow:
   tracking_uri: 'file:mlruns'
-  experiment_name: 'beir-distilroberta-1'
+  experiment_name: 'beir-distilroberta-2'
 es:
   es_hostname: localhost
   initialize: True
