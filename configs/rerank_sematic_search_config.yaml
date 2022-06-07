@@ -8,12 +8,12 @@ datasets:
   - webis-touche2020
 datasets_path: datasets
 batch_size: 16
-onnx_filename: distilroberta_MNR_pca_256_fp16_optimized.onnx
+onnx_filename: distilroberta_multi_pca_278_fp16_optimized.onnx
 model_path: model
 score_function: cos_sim
 mlflow:
   tracking_uri: 'file:mlruns'
-  experiment_name: 'beir-distilroberta-2'
+  experiment_name: 'beir-distilroberta-4'
 es:
   es_hostname: localhost
   initialize: True
