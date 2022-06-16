@@ -3,7 +3,7 @@ from beir.retrieval import models
 from experiments.experiment import RerankExperiment
 
 if __name__ == '__main__':
-    with open('configs/rerank_sematic_search_config.yaml') as config_file:
+    with open('configs/distillroberta_pca/rerank_semantic_search_config.yaml') as config_file:
         dataset_configs = yaml.safe_load(config_file)
     mlflow_configs = dataset_configs['mlflow']
     es_configs = dataset_configs['es']
