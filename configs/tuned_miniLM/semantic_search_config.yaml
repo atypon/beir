@@ -1,0 +1,16 @@
+datasets:
+  - scifact
+  - trec-covid-beir
+  - fiqa
+  - quora
+  - nfcorpus
+  - scidocs
+  - webis-touche2020
+datasets_path: datasets
+batch_size: 16
+onnx_filename: all_minilm_l12_v2_pca_256_multi_objective_fp16_optimized.onnx
+model_path: model/tuned_miniLM
+score_function: cos_sim
+mlflow:
+  tracking_uri: 'file:mlruns'
+  experiment_name: 'beir-tuned-miniLM-1'
