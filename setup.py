@@ -21,7 +21,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=[
-        'huggingface-hub==0.10.0'
+        'huggingface-hub==0.10.0',
         'protobuf==3.20.1',
         'scikit-learn==0.21.0',
         'scipy==1.5.0',
