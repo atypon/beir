@@ -12,7 +12,7 @@ onnx_filename: all_minilm_l12_fp16_optimized.onnx
 model_path: model/miniLM
 score_function: cos_sim
 mlflow:
-  tracking_uri: "file:mlruns"
+  tracking_uri: "https://mlflow-demo.atypon.com/"
   experiment_name: 'beir-faiss-ce-reranking'
 es:
   es_hostname: localhost
