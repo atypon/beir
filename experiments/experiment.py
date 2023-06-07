@@ -42,7 +42,7 @@ class Experiment(object):
                 self.client.restore_experiment(dict(mlflow_experiment)['experiment_id'])
             self.experiment_id = dict(mlflow_experiment)['experiment_id']
 
-    def experiemnt_pipeline(self):
+    def experiment_pipeline(self):
         for dataset in self.dataset_paths:
             try:
                 corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
@@ -111,7 +111,7 @@ class RerankExperiment(Experiment):
         retriever = EvaluateRetrieval(model)
         return retriever
 
-    def experiemnt_pipeline(self):
+    def experiment_pipeline(self):
         for dataset in self.dataset_paths:
             try:
                 corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')

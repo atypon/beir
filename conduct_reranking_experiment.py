@@ -27,4 +27,4 @@ if __name__ == '__main__':
                                   top_k=dataset_configs['k'],
                                   es_hostname=es_configs['es_hostname'],
                                   initialize=es_configs['initialize'])
-    experiment.experiemnt_pipeline()
+    experiment.experiment_pipeline()
