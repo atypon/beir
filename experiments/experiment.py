@@ -184,7 +184,7 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
                          initialize=initialize,
                          mlflow_configs=mlflow_configs)
 
-    def __rerank_pipeline(self,
+    def _rerank_pipeline(self,
                           corpus: Dict[str, Dict[str, str]],
                           queries: Dict[str, str],
                           index_name: str) \
@@ -220,7 +220,68 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
             try:
                 corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
                 index_name = dataset.replace('/', '_')
-                rerank_results = self.__rerank_pipeline(corpus=corpus, queries=queries, index_name=index_name)
+                rerank_results = self._rerank_pipeline(corpus=corpus, queries=queries, index_name=index_name)
                 self._eval_pipeline(qrels=qrels, results=rerank_results, dataset=dataset)
             except:
                 print('There is an error in this dataset:', dataset)
+
+
+class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
+    """
+    BM25 + CE rerank experiment
+    """
+    def __init__(self, datasets: List[str],
+                 datasets_path: str,
+                 onnx_model: OnnxBERT,
+                 ce_model: str,
+                 bi_batch_size: int,
+                 ce_batch_size: int,
+                 top_k: int,
+                 score_function: str,
+                 es_hostname: str,
+                 initialize: bool,
+                 mlflow_configs: Dict[str, str]):
+        """
+        Initialize the class by load ing the models
+        :param datasets: a list with the datasets to evaluate
+        :param datasets_path: the path we stored the datasets
+        :param onnx_model: the onnx bi-encoder
+        :param ce_model: the hf card of the cross encoder model
+        :param bi_batch_size: the batch size for the bi-encoder step.
+        :param ce_batch_size: the batch size for the cross-encoder step
+        :param top_k: retrieve top_k results using the bi-encoder
+        :param score_function: the similarity metric
+        :param es_hostname: the hostname of ElasticSearch
+        :param initialize: a boolean to decide if we will initialize the ES or not
+        :param mlflow_configs: the MLFlow server configurations
+        """
+        super().__init__(datasets=datasets,
+                         datasets_path=datasets_path,
+                         onnx_model=onnx_model,
+                         ce_model=ce_model,
+                         bi_batch_size=0,
+                         ce_batch_size=ce_batch_size,
+                         top_k=top_k,
+                         score_function=score_function,
+                         es_hostname=es_hostname,
+                         initialize=initialize,
+                         mlflow_configs=mlflow_configs)
+
+    def _rerank_pipeline(self,
+                         corpus: Dict[str, Dict[str, str]],
+                         queries: Dict[str, str],
+                         index_name: str) -> Dict[str, Dict[str, float]]:
+        """
+               perform all the rerank steps of the pipeline
+               :param corpus: the corpus of a specific dataset
+               :param queries: the queries of this dataset
+               :param index_name: the name of the ES index
+               :return  the reranked results.
+               """
+        bm25_retriever = self._create_bm25_retriever(index_name=index_name)
+        bm25_results = bm25_retriever.retrieve(corpus=corpus, queries=queries)
+        ce_rerank_results = self.reranker.rerank(corpus=corpus,
+                                                 queries=queries,
+                                                 results=bm25_results,
+                                                 top_k=self.k)
+        return ce_rerank_results
