@@ -49,6 +49,7 @@ class OnnxBERT:
     def encode_corpus(self, corpus: List[Dict[str, str]],
                       batch_size: int,
                       show_progress_bar: bool = True,
+                      normalize_embeddings: bool = False, # necessary for experiments with faiss
                       convert_to_tensor: bool = None) -> Union[
         List[List[float]], np.ndarray, List[float]]:
         sentences = [(doc["title"] + self.sep + doc["text"]).strip() if "title" in doc else doc["text"].strip() for doc

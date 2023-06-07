@@ -5,6 +5,7 @@ from mlflow.tracking import MlflowClient
 from beir.retrieval.models import OnnxBERT
 from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.datasets.data_loader import GenericDataLoader
+from beir.retrieval.search.dense import HNSWFaissSearch
 from beir.reranking.models.cross_encoder import CrossEncoder
 from beir.reranking import Rerank
 from beir.retrieval.evaluation import EvaluateRetrieval
@@ -230,7 +231,8 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
     """
     BM25 + CE rerank experiment
     """
-    def __init__(self, datasets: List[str],
+    def __init__(self,
+                 datasets: List[str],
                  datasets_path: str,
                  onnx_model: OnnxBERT,
                  ce_model: str,
@@ -285,3 +287,83 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
                                                  results=bm25_results,
                                                  top_k=self.k)
         return ce_rerank_results
+
+
+class HNSWExperiment(Experiment):
+    """
+    A class that represents the experiment where the first step is hswn and the second one a cross encoder
+    """
+
+    def __init__(self,
+                 datasets: List[str],
+                 datasets_path: str,
+                 onnx_model: OnnxBERT,
+                 ce_model: str,
+                 hnsw_batch_size: int,
+                 ce_batch_size: int,
+                 top_k: int,
+                 score_function: str,
+                 mlflow_configs: Dict[str, str],
+                 hnsw_store_n: int = 512,
+                 hnsw_ef_search: int = 128,
+                 hnsw_ef_construction: int = 200,
+                 ):
+        """
+         Initialize the class by load ing the models
+        :param datasets: a list with the datasets to evaluate
+        :param datasets_path: the path we stored the datasets
+        :param onnx_model: the onnx bi-encoder
+        :param ce_model: the hf card of the cross encoder model
+        :param hnsw_batch_size: the batch size for the bi-encoder step in hswn algorithm.
+        :param ce_batch_size: the batch size for the cross-encoder step
+        :param top_k: retrieve top_k results using the bi-encoder
+        :param score_function: the similarity metric
+        """
+        self.k = top_k
+        super().__init__(datasets=datasets,
+                         datasets_path=datasets_path,
+                         onnx_model=onnx_model,
+                         batch_size=hnsw_batch_size,
+                         score_function=score_function,
+                         mlflow_configs=mlflow_configs)
+        self.faiss_search = HNSWFaissSearch(self.onnx_model,
+                                            batch_size=self.bs,
+                                            hnsw_store_n=hnsw_store_n,
+                                            hnsw_ef_search=hnsw_ef_search,
+                                            hnsw_ef_construction=hnsw_ef_construction)
+        self.retriever = EvaluateRetrieval(self.faiss_search, score_function=self.score_func)
+        self.ce = CrossEncoder(ce_model)
+        self.ce_batch_size = ce_batch_size
+        self.reranker = Rerank(model=self.ce, batch_size=self.ce_batch_size)
+
+    def _rerank_pipeline(self,
+                         corpus: Dict[str, Dict[str, str]],
+                         queries: Dict[str, str]) \
+            -> Dict[str, Dict[str, float]]:
+        """
+        perform all the rerank steps of the pipeline
+        :param corpus: the corpus of a specific dataset
+        :param queries: the queries of this dataset
+        :return  the reranked results.
+        """
+        faiss_results = self.retriever.retrieve(corpus=corpus, queries=queries)
+        ce_rerank_results = self.reranker.rerank(corpus=corpus,
+                                                 queries=queries,
+                                                 results=faiss_results,
+                                                 top_k=self.k)
+        return ce_rerank_results
+
+    def experiment_pipeline(self):
+        """
+        The full pipeline of the experiment. The steps of this pipeline are:
+        1) Index the documents by their embeddings extracted by a bi-encoder in faiss
+        2) Rerank the previous results using a cross encoder
+        Finally, evaluate the results and log the metrics to MLFlow server.
+        """
+        for dataset in self.dataset_paths:
+            try:
+                corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
+                rerank_results = self._rerank_pipeline(corpus=corpus, queries=queries)
+                self._eval_pipeline(qrels=qrels, results=rerank_results, dataset=dataset)
+            except:
+                print('There is an error in this dataset:', dataset)
