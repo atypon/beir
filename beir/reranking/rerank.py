@@ -22,15 +22,17 @@ class Rerank:
         for query_id in results:
             if len(results[query_id]) > top_k:
                 for (doc_id, _) in sorted(results[query_id].items(), key=lambda item: item[1], reverse=True)[:top_k]:
-                    pair_ids.append([query_id, doc_id])
-                    corpus_text = (corpus[doc_id].get("title", "") + " " + corpus[doc_id].get("text", "")).strip()
-                    sentence_pairs.append([queries[query_id], corpus_text])
+                    if doc_id in corpus and query_id in queries:
+                        pair_ids.append([query_id, doc_id])
+                        corpus_text = (corpus[doc_id].get("title", "") + " " + corpus[doc_id].get("text", "")).strip()
+                        sentence_pairs.append([queries[query_id], corpus_text])
             
             else:
                 for doc_id in results[query_id]:
-                    pair_ids.append([query_id, doc_id])
-                    corpus_text = (corpus[doc_id].get("title", "") + " " + corpus[doc_id].get("text", "")).strip()
-                    sentence_pairs.append([queries[query_id], corpus_text])
+                    if doc_id in corpus and query_id in queries:
+                        pair_ids.append([query_id, doc_id])
+                        corpus_text = (corpus[doc_id].get("title", "") + " " + corpus[doc_id].get("text", "")).strip()
+                        sentence_pairs.append([queries[query_id], corpus_text])
 
         #### Starting to Rerank using cross-attention
         logging.info("Starting To Rerank Top-{}....".format(top_k))

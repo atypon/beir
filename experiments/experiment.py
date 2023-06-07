@@ -361,9 +361,6 @@ class HNSWExperiment(Experiment):
         Finally, evaluate the results and log the metrics to MLFlow server.
         """
         for dataset in self.dataset_paths:
-            try:
-                corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
-                rerank_results = self._rerank_pipeline(corpus=corpus, queries=queries)
-                self._eval_pipeline(qrels=qrels, results=rerank_results, dataset=dataset)
-            except:
-                print('There is an error in this dataset:', dataset)
+            corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
+            rerank_results = self._rerank_pipeline(corpus=corpus, queries=queries)
+            self._eval_pipeline(qrels=qrels, results=rerank_results, dataset=dataset)
