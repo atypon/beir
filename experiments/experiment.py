@@ -201,7 +201,7 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
         bi_rerank_results = self.retriever.rerank(corpus=corpus,
                                                   queries=queries,
                                                   results=bm25_results,
-                                                  top_k=self.k)
+                                                  top_k=(2 * self.k))
         ce_rerank_results = self.reranker.rerank(corpus=corpus,
                                                  queries=queries,
                                                  results=bi_rerank_results,
