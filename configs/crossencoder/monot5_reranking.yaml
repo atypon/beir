@@ -20,7 +20,7 @@ es:
 k: 100
 cross_encoder:
   model_name: "castorini/monot5-base-msmarco"
-  batch_size: 8
+  batch_size: 4
 monot5:
   true_token: "▁true"
   false_token: "▁false"
