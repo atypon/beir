@@ -326,12 +326,9 @@ class HNSWExperiment(Experiment):
                          batch_size=hnsw_batch_size,
                          score_function=score_function,
                          mlflow_configs=mlflow_configs)
-        self.faiss_search = HNSWFaissSearch(self.onnx_model,
-                                            batch_size=self.bs,
-                                            hnsw_store_n=hnsw_store_n,
-                                            hnsw_ef_search=hnsw_ef_search,
-                                            hnsw_ef_construction=hnsw_ef_construction)
-        self.retriever = EvaluateRetrieval(self.faiss_search, score_function=self.score_func)
+        self.hnsw_store_n = hnsw_store_n
+        self.hnsw_ef_search = hnsw_ef_search
+        self.hnsw_ef_construction = hnsw_ef_construction
         self.ce = CrossEncoder(ce_model)
         self.ce_batch_size = ce_batch_size
         self.reranker = Rerank(model=self.ce, batch_size=self.ce_batch_size)
@@ -341,11 +338,17 @@ class HNSWExperiment(Experiment):
                          queries: Dict[str, str]) \
             -> Dict[str, Dict[str, float]]:
         """
-        perform all the rerank steps of the pipeline
+        perform all the rerank steps of the pipeline.
         :param corpus: the corpus of a specific dataset
         :param queries: the queries of this dataset
         :return  the reranked results.
         """
+        faiss_search = HNSWFaissSearch(self.onnx_model,
+                                       batch_size=self.bs,
+                                       hnsw_store_n=self.hnsw_store_n,
+                                       hnsw_ef_search=self.hnsw_ef_search,
+                                       hnsw_ef_construction=self.hnsw_ef_construction)
+        self.retriever = EvaluateRetrieval(faiss_search, score_function=self.score_func)
         faiss_results = self.retriever.retrieve(corpus=corpus, queries=queries)
         ce_rerank_results = self.reranker.rerank(corpus=corpus,
                                                  queries=queries,
