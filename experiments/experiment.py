@@ -7,6 +7,7 @@ from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.datasets.data_loader import GenericDataLoader
 from beir.retrieval.search.dense import HNSWFaissSearch
 from beir.reranking.models.cross_encoder import CrossEncoder
+from beir.reranking.models.mono_t5 import MonoT5
 from beir.reranking import Rerank
 from beir.retrieval.evaluation import EvaluateRetrieval
 from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
@@ -329,7 +330,7 @@ class HNSWExperiment(Experiment):
         self.hnsw_store_n = hnsw_store_n
         self.hnsw_ef_search = hnsw_ef_search
         self.hnsw_ef_construction = hnsw_ef_construction
-        self.ce = CrossEncoder(ce_model)
+        self.ce = CrossEncoder(model_path=ce_model)
         self.ce_batch_size = ce_batch_size
         self.reranker = Rerank(model=self.ce, batch_size=self.ce_batch_size)
 
@@ -367,3 +368,52 @@ class HNSWExperiment(Experiment):
             corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
             rerank_results = self._rerank_pipeline(corpus=corpus, queries=queries)
             self._eval_pipeline(qrels=qrels, results=rerank_results, dataset=dataset)
+
+
+class HNSWEMonoT5xperiment(Experiment):
+    """
+    A class that represents the experiment where the first step is hswn and the second one a cross encoder
+    """
+
+    def __init__(self,
+                 datasets: List[str],
+                 datasets_path: str,
+                 onnx_model: OnnxBERT,
+                 token_false: str,
+                 token_true: str,
+                 ce_model: str,
+                 hnsw_batch_size: int,
+                 ce_batch_size: int,
+                 top_k: int,
+                 score_function: str,
+                 mlflow_configs: Dict[str, str],
+                 hnsw_store_n: int = 512,
+                 hnsw_ef_search: int = 128,
+                 hnsw_ef_construction: int = 200,
+                 ):
+        """
+         Initialize the class by load ing the models
+        :param datasets: a list with the datasets to evaluate
+        :param datasets_path: the path we stored the datasets
+        :param onnx_model: the onnx bi-encoder
+        :param token_false: the token that represents the false token
+        :param token_true: the token that represents the true token
+        :param ce_model: the hf card of the cross encoder model
+        :param hnsw_batch_size: the batch size for the bi-encoder step in hswn algorithm.
+        :param ce_batch_size: the batch size for the cross-encoder step
+        :param top_k: retrieve top_k results using the bi-encoder
+        :param score_function: the similarity metric
+        """
+        self.k = top_k
+        super().__init__(datasets=datasets,
+                         datasets_path=datasets_path,
+                         onnx_model=onnx_model,
+                         batch_size=hnsw_batch_size,
+                         score_function=score_function,
+                         mlflow_configs=mlflow_configs)
+        self.hnsw_store_n = hnsw_store_n
+        self.hnsw_ef_search = hnsw_ef_search
+        self.hnsw_ef_construction = hnsw_ef_construction
+        self.ce = MonoT5(model_path=ce_model, token_true=token_true, token_false=token_false)
+        self.ce_batch_size = ce_batch_size
+        self.reranker = Rerank(model=self.ce, batch_size=self.ce_batch_size)
