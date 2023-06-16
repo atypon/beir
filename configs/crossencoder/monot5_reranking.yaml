@@ -1,0 +1,26 @@
+datasets:
+  - scifact
+  - trec-covid-beir
+  - fiqa
+  - quora
+  - nfcorpus
+  - scidocs
+  - webis-touche2020
+datasets_path: datasets
+batch_size: 16
+onnx_filename: all_minilm_l12_fp16_optimized.onnx
+model_path: model/miniLM
+score_function: cos_sim
+mlflow:
+  tracking_uri: "https://mlflow-demo.atypon.com/"
+  experiment_name: 'beir-faiss-monot5-reranking'
+es:
+  es_hostname: localhost
+  initialize: True
+k: 100
+cross_encoder:
+  model_name: "castorini/monot5-base-msmarco"
+  batch_size: 4
+monot5:
+  true_token: "▁true"
+  false_token: "▁false"

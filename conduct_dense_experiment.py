@@ -23,4 +23,4 @@ if __name__ == '__main__':
                             onnx_model=onnx_model,
                             score_function=dataset_configs['score_function'],
                             mlflow_configs=mlflow_configs)
-    experiment.experiemnt_pipeline()
+    experiment.experiment_pipeline()

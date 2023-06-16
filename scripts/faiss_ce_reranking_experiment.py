@@ -1,7 +1,7 @@
 import argparse
 import yaml
 from beir.retrieval import models
-from experiments.experiment import RerankExperiment
+from experiments.experiment import HNSWExperiment
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
@@ -18,13 +18,13 @@ if __name__ == '__main__':
     ##Load the onnx model and conduct the experiment
     onnx_model = models.OnnxBERT(onnx_filename=dataset_configs['onnx_filename'],
                                  model_path=dataset_configs['model_path'])
-    experiment = RerankExperiment(datasets=dataset_configs['datasets'],
-                                  datasets_path=dataset_configs['datasets_path'],
-                                  batch_size=dataset_configs['batch_size'],
-                                  onnx_model=onnx_model,
-                                  score_function=dataset_configs['score_function'],
-                                  mlflow_configs=mlflow_configs,
-                                  top_k=dataset_configs['k'],
-                                  es_hostname=es_configs['es_hostname'],
-                                  initialize=es_configs['initialize'])
+    experiment = HNSWExperiment(datasets=dataset_configs['datasets'],
+                                datasets_path=dataset_configs['datasets_path'],
+                                hnsw_batch_size=dataset_configs['batch_size'],
+                                ce_model=dataset_configs["cross_encoder"]["model_name"],
+                                ce_batch_size=dataset_configs["cross_encoder"]["batch_size"],
+                                onnx_model=onnx_model,
+                                score_function=dataset_configs['score_function'],
+                                mlflow_configs=mlflow_configs,
+                                top_k=dataset_configs['k'])
     experiment.experiment_pipeline()
