@@ -13,11 +13,11 @@ model_path: model/miniLM
 score_function: cos_sim
 mlflow:
   tracking_uri: "https://mlflow-demo.atypon.com/"
-  experiment_name: 'beir-faiss-bge-reranking'
+  experiment_name: 'beir-faiss-bge-large-reranking'
 es:
   es_hostname: localhost
   initialize: True
 k: 100
 cross_encoder:
-  model_name: BAAI/bge-reranker-base
+  model_name: BAAI/bge-reranker-large
   batch_size: 8
