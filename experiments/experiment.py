@@ -1,8 +1,8 @@
 import os
-from typing import List, Dict
+from typing import List, Dict, Union
 import mlflow
 from mlflow.tracking import MlflowClient
-from beir.retrieval.models import OnnxBERT
+from beir.retrieval.models import OnnxBERT, OnnxBGE
 from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.datasets.data_loader import GenericDataLoader
 from beir.retrieval.search.dense import HNSWFaissSearch
@@ -16,7 +16,7 @@ from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
 class Experiment(object):
     def __init__(self, datasets: List[str],
                  datasets_path: str,
-                 onnx_model: OnnxBERT,
+                 onnx_model: Union[OnnxBERT, OnnxBGE],
                  batch_size: int,
                  score_function: str,
                  mlflow_configs: Dict[str, str]):

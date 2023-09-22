@@ -6,12 +6,12 @@ from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 import numpy as np
 
 
-class OnnxBERT:
-    def _init_(self,
-               onnx_filename: Union[str, Tuple],
-               model_path: Union[str, Tuple] = None,
-               sep: str = " ",
-               **kwargs):
+class OnnxBERT(object):
+    def __init__(self,
+                 onnx_filename: Union[str, Tuple],
+                 model_path: Union[str, Tuple] = None,
+                 sep: str = " ",
+                 **kwargs):
         self.sep = sep
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         session_options = SessionOptions()
@@ -100,9 +100,9 @@ class OnnxBGE(OnnxBERT):
     """
     def __init__(self,
                  onnx_filename: Union[str, Tuple],
-                 query_instruction: str,
                  model_path: Union[str, Tuple] = None,
                  sep: str = " ",
+                 query_instruction: str = "",
                  enable_query_instruction: bool = False,
                  **kwargs):
         self.query_instruction = query_instruction
