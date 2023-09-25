@@ -12,5 +12,5 @@ onnx_filename: all_minilm_l12_fp16_optimized.onnx
 model_path: model/miniLM
 score_function: cos_sim
 mlflow:
-  tracking_uri: 'file:mlruns'
-  experiment_name: 'beir-miniLM-1'
+  tracking_uri: "https://mlflow-demo.atypon.com/"
+  experiment_name: 'beir-miniLM'
