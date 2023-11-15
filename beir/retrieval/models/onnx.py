@@ -11,8 +11,10 @@ class OnnxBERT(object):
                  onnx_filename: Union[str, Tuple],
                  model_path: Union[str, Tuple] = None,
                  sep: str = " ",
+                 cls: bool = False,
                  **kwargs):
         self.sep = sep
+        self.cls = cls
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         session_options = SessionOptions()
         session_options.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
@@ -42,7 +44,11 @@ class OnnxBERT(object):
             batches = tqdm(batchified_queries)
         for batch in batches:
             inputs = self._create_ort_input(queries=batch)
-            query_embeddings += list(self.q_model.run([], inputs)[0])
+            if self.cls:
+                batch_q_embs = list(self.q_model.run([], inputs)[0][:, 0, :])
+                query_embeddings += batch_q_embs
+            else:
+                query_embeddings += list(self.q_model.run([], inputs)[0])
         query_embeddings = np.asarray(query_embeddings)
         return query_embeddings
 
@@ -62,7 +68,11 @@ class OnnxBERT(object):
             batches = tqdm(batchified_sentences)
         for batch in batches:
             inputs = self._create_ort_input(queries=batch)
-            corpus_embeddings += list(self.doc_model.run([], inputs)[0])
+            if self.cls:
+                batch_c_embs = list(self.doc_model.run([], inputs)[0][:, 0, :])
+                corpus_embeddings += batch_c_embs
+            else:
+                corpus_embeddings += self.doc_model.run([], inputs)[0]
         corpus_embeddings = np.asarray(corpus_embeddings)
         return corpus_embeddings
 
@@ -104,12 +114,14 @@ class OnnxBGE(OnnxBERT):
                  sep: str = " ",
                  query_instruction: str = "",
                  enable_query_instruction: bool = False,
+                 cls: bool = False,
                  **kwargs):
         self.query_instruction = query_instruction
         self.enable_query_instruction = enable_query_instruction
         super().__init__(onnx_filename=onnx_filename,
                          model_path=model_path,
                          sep=sep,
+                         cls=cls,
                          kwargs=kwargs)
 
     def encode_queries(self,
@@ -128,6 +140,10 @@ class OnnxBGE(OnnxBERT):
             batches = tqdm(batchified_queries)
         for batch in batches:
             inputs = self._create_ort_input(queries=batch)
-            query_embeddings += list(self.q_model.run([], inputs)[0])
+            if self.cls:
+                batch_q_embs = list(self.q_model.run([], inputs)[0][:, 0, :])
+                query_embeddings += batch_q_embs
+            else:
+                query_embeddings += list(self.q_model.run([], inputs)[0])
         query_embeddings = np.asarray(query_embeddings)
         return query_embeddings

@@ -18,7 +18,8 @@ if __name__ == '__main__':
     onnx_model = models.OnnxBGE(onnx_filename=dataset_configs['onnx_filename'],
                                 model_path=dataset_configs['model_path'],
                                 enable_query_instruction=dataset_configs["bge"]["enable_query_instruction"],
-                                query_instruction=dataset_configs["bge"]["query_instruction"])
+                                query_instruction=dataset_configs["bge"]["query_instruction"],
+                                cls=dataset_configs["bge"]["cls"])
     experiment = Experiment(datasets=dataset_configs['datasets'],
                             datasets_path=dataset_configs['datasets_path'],
                             batch_size=dataset_configs['batch_size'],

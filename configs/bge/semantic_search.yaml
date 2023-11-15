@@ -17,3 +17,4 @@ mlflow:
 bge:
   enable_query_instruction: True
   query_instruction: "Represent this sentence for searching relevant passages:"
+  cls: True
