@@ -48,13 +48,13 @@ class Experiment(object):
 
     def experiment_pipeline(self):
         for dataset in self.dataset_paths:
-            try:
-                corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
-                results = self.retriever.retrieve(corpus=corpus, queries=queries)
-                self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
-            except Exception as e:
-                print(e)
-                print('There is an error in this dataset:', dataset)
+            #try:
+            corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
+            results = self.retriever.retrieve(corpus=corpus, queries=queries)
+            self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
+            #except Exception as e:
+            #    print(e)
+            #    print('There is an error in this dataset:', dataset)
 
     def _track_metric(self,
                       dataset: str,

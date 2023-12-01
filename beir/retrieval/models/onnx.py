@@ -72,7 +72,7 @@ class OnnxBERT(object):
                 batch_c_embs = list(self.doc_model.run([], inputs)[0][:, 0, :])
                 corpus_embeddings += batch_c_embs
             else:
-                corpus_embeddings += self.doc_model.run([], inputs)[0]
+                corpus_embeddings += list(self.doc_model.run([], inputs)[0])
         corpus_embeddings = np.asarray(corpus_embeddings)
         return corpus_embeddings
 
