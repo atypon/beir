@@ -55,7 +55,7 @@ class Experiment(object):
                 self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
             except Exception as e:
                 print(e)
-                traceback.print_exc(e)
+                traceback.print_exc()
                 print('There is an error in this dataset:', dataset)
 
     def _track_metric(self,
