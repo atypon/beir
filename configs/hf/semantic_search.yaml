@@ -1,0 +1,16 @@
+datasets:
+  - scifact
+  - trec-covid-beir
+  - fiqa
+  - quora
+  - nfcorpus
+  - scidocs
+  - webis-touche2020
+datasets_path: datasets
+batch_size: 1
+model_path: togethercomputer/m2-bert-80M-2k-retrieval
+score_function: cos_sim
+max_seq_length: 2048
+mlflow:
+  tracking_uri: "https://mlflow-demo.atypon.com/"
+  experiment_name: 'beir-faiss-m2-bert-2k'

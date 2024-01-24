@@ -1,8 +1,9 @@
 import os
+import traceback
 from typing import List, Dict, Union
 import mlflow
 from mlflow.tracking import MlflowClient
-from beir.retrieval.models import OnnxBERT, OnnxBGE
+from beir.retrieval.models import OnnxBERT, OnnxBGE, HFModel
 from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.datasets.data_loader import GenericDataLoader
 from beir.retrieval.search.dense import HNSWFaissSearch
@@ -16,7 +17,7 @@ from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
 class Experiment(object):
     def __init__(self, datasets: List[str],
                  datasets_path: str,
-                 onnx_model: Union[OnnxBERT, OnnxBGE],
+                 onnx_model: Union[OnnxBERT, OnnxBGE, HFModel],
                  batch_size: int,
                  score_function: str,
                  mlflow_configs: Dict[str, str]):
@@ -52,7 +53,9 @@ class Experiment(object):
                 corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
                 results = self.retriever.retrieve(corpus=corpus, queries=queries)
                 self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
-            except:
+            except Exception as e:
+                print(e)
+                traceback.print_exc(e)
                 print('There is an error in this dataset:', dataset)
 
     def _track_metric(self,

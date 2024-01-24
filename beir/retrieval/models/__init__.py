@@ -7,3 +7,4 @@ from .unicoil import UniCOIL
 from .splade import SPLADE
 from .tldr import TLDR
 from .onnx import OnnxBERT, OnnxBGE
+from .hf import HFModel

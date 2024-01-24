@@ -30,7 +30,7 @@ setup(
         'pytrec_eval',
         'faiss_cpu',
         'elasticsearch==7.9.1',
-        'onnxruntime-gpu==1.9.0'
+        'onnxruntime-gpu==1.12.0'
     ],
     extras_require=optional_packages,
     classifiers=[
