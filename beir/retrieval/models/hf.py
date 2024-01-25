@@ -19,11 +19,11 @@ class HFModel(object):
 		)
 		
 		device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-		self.q_model.half().to(device)
+		self.q_model.half().eval().to(device)
 		self.doc_model = self.q_model
 		
 		self.tokenizer = AutoTokenizer.from_pretrained(
-			"bert-base-uncased",
+			pretrained_model_name_or_path=model_path,
 			model_max_length=max_seq_length,
 		)
 		
@@ -37,6 +37,7 @@ class HFModel(object):
 			batches.append(queries[i: i + batch_size])
 		return batches
 	
+	@torch.inference_mode()
 	def encode_queries(self, queries: List[str],
 	                   batch_size: int,
 	                   convert_to_tensor: bool = None,
@@ -56,10 +57,11 @@ class HFModel(object):
 				return_token_type_ids=False,
 				truncation=True,
 				max_length=self.max_seq_length).to(self.q_model.device)
-			query_embeddings += list(self.q_model(**inputs)['sentence_embedding'])
+			query_embeddings += list(self.q_model(**inputs)['sentence_embedding'].detach().cpu())
 		query_embeddings = np.asarray(query_embeddings)
 		return query_embeddings
 	
+	@torch.inference_mode()
 	def encode_corpus(self, corpus: List[Dict[str, str]],
 	                  batch_size: int,
 	                  show_progress_bar: bool = True,
@@ -81,8 +83,8 @@ class HFModel(object):
 				padding="max_length",
 				return_token_type_ids=False,
 				truncation=True,
-				max_length=self.max_seq_length).to(self.doc_model.deive)
-			corpus_embeddings += list(self.doc_model(**inputs)['sentence_embedding'])
+				max_length=self.max_seq_length).to(self.doc_model.device)
+			corpus_embeddings += list(self.doc_model(**inputs)['sentence_embedding'].detach().cpu())
 		corpus_embeddings = np.asarray(corpus_embeddings)
 		return corpus_embeddings
 	
