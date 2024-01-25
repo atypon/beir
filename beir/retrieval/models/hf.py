@@ -59,7 +59,8 @@ class HFModel(object):
 				max_length=self.max_seq_length).to(self.q_model.device)
 			query_embeddings += list(self.q_model(**inputs)['sentence_embedding']
 			                         .detach()
-			                         .cpu())
+			                         .cpu()
+			                         .numpy())
 		query_embeddings = np.asarray(query_embeddings)
 		return query_embeddings
 	
@@ -88,7 +89,8 @@ class HFModel(object):
 				max_length=self.max_seq_length).to(self.doc_model.device)
 			corpus_embeddings += list(self.doc_model(**inputs)['sentence_embedding']
 			                          .detach()
-			                          .cpu())
+			                          .cpu()
+			                          .numpy())
 		corpus_embeddings = np.asarray(corpus_embeddings)
 		return corpus_embeddings
 	
