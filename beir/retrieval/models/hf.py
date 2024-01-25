@@ -19,7 +19,7 @@ class HFModel(object):
 		)
 		
 		device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-		self.q_model.half().eval().to(device)
+		self.q_model.eval().to(device)
 		self.doc_model = self.q_model
 		
 		self.tokenizer = AutoTokenizer.from_pretrained(
@@ -57,7 +57,9 @@ class HFModel(object):
 				return_token_type_ids=False,
 				truncation=True,
 				max_length=self.max_seq_length).to(self.q_model.device)
-			query_embeddings += list(self.q_model(**inputs)['sentence_embedding'].detach().cpu())
+			query_embeddings += list(self.q_model(**inputs)['sentence_embedding']
+			                         .detach()
+			                         .cpu())
 		query_embeddings = np.asarray(query_embeddings)
 		return query_embeddings
 	
@@ -84,7 +86,9 @@ class HFModel(object):
 				return_token_type_ids=False,
 				truncation=True,
 				max_length=self.max_seq_length).to(self.doc_model.device)
-			corpus_embeddings += list(self.doc_model(**inputs)['sentence_embedding'].detach().cpu())
+			corpus_embeddings += list(self.doc_model(**inputs)['sentence_embedding']
+			                          .detach()
+			                          .cpu())
 		corpus_embeddings = np.asarray(corpus_embeddings)
 		return corpus_embeddings
 	
