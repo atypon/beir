@@ -4,6 +4,8 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import torch.nn.functional as F
+
 
 class HFModel(object):
 	
@@ -57,7 +59,7 @@ class HFModel(object):
 				return_token_type_ids=False,
 				truncation=True,
 				max_length=self.max_seq_length).to(self.q_model.device)
-			query_embeddings += list(self.q_model(**inputs)['sentence_embedding']
+			query_embeddings += list(F.normalize(self.q_model(**inputs)['sentence_embedding'], p=2, dim=1)
 			                         .detach()
 			                         .cpu()
 			                         .numpy())
@@ -87,10 +89,9 @@ class HFModel(object):
 				return_token_type_ids=False,
 				truncation=True,
 				max_length=self.max_seq_length).to(self.doc_model.device)
-			corpus_embeddings += list(self.doc_model(**inputs)['sentence_embedding']
+			corpus_embeddings += list(F.normalize(self.doc_model(**inputs)['sentence_embedding'], p=2, dim=1)
 			                          .detach()
-			                          .cpu()
-			                          .numpy())
+			                          .cpu())
 		corpus_embeddings = np.asarray(corpus_embeddings)
 		return corpus_embeddings
 	
