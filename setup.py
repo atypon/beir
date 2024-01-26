@@ -23,9 +23,9 @@ setup(
     install_requires=[
         'huggingface-hub==0.10.0',
         'protobuf==3.20.1',
-        'scikit-learn==0.21.0',
-        'scipy==1.5.0',
-        'numpy==1.21.0',
+        'scikit-learn==1.4.0',
+        'scipy==1.12.0',
+        'numpy==1.26.0',
         'sentence-transformers==2.0.0',
         'pytrec_eval',
         'faiss_cpu',
