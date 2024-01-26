@@ -91,7 +91,8 @@ class HFModel(object):
 				max_length=self.max_seq_length).to(self.doc_model.device)
 			corpus_embeddings += list(F.normalize(self.doc_model(**inputs)['sentence_embedding'], p=2, dim=1)
 			                          .detach()
-			                          .cpu())
+			                          .cpu()
+			                          .numpy())
 		corpus_embeddings = np.asarray(corpus_embeddings)
 		return corpus_embeddings
 	
