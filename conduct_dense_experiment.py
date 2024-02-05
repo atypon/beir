@@ -16,7 +16,9 @@ if __name__ == '__main__':
 
     ##Load the onnx model and conduct the experiment
     onnx_model = models.OnnxBERT(onnx_filename=dataset_configs['onnx_filename'],
-                                 model_path=dataset_configs['model_path'])
+                                 model_path=dataset_configs['model_path'],
+                                 matryoshka_dim=dataset_configs['matryoshka_dim']
+                                 )
     experiment = Experiment(datasets=dataset_configs['datasets'],
                             datasets_path=dataset_configs['datasets_path'],
                             batch_size=dataset_configs['batch_size'],
