@@ -48,7 +48,7 @@ class OnnxBERT(object):
             inputs = self._create_ort_input(queries=batch)
             model_out = self.q_model.run([], inputs)[0]
             if self.matryoshka_dim is not None:
-                model_out = model_out[:, :, :self.matryoshka_dim]
+                model_out = model_out[..., :self.matryoshka_dim]
             if self.cls:
                 batch_q_embs = list(model_out[:, 0, :])
                 query_embeddings += batch_q_embs
@@ -75,7 +75,7 @@ class OnnxBERT(object):
             inputs = self._create_ort_input(queries=batch)
             model_out = self.q_model.run([], inputs)[0]
             if self.matryoshka_dim is not None:
-                model_out = model_out[:, :, :self.matryoshka_dim]
+                model_out = model_out[..., :self.matryoshka_dim]
             if self.cls:
                 batch_c_embs = list(model_out[:, 0, :])
                 corpus_embeddings += batch_c_embs
