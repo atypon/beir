@@ -4,6 +4,8 @@ examples/**/output/
 examples/**/DeepCT/
 examples/**/models/
 examples/**/faiss-index/
+datasets/*
+!datasets/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -20,7 +20,7 @@ if __name__ == '__main__':
                                  matryoshka_dim=dataset_configs['matryoshka_dim']
                                  )
     experiment = Experiment(datasets=dataset_configs['datasets'],
-                            datasets_path=dataset_configs['datasets_path'],
+                            datasets_path='datasets',
                             batch_size=dataset_configs['batch_size'],
                             onnx_model=onnx_model,
                             score_function=dataset_configs['score_function'],
