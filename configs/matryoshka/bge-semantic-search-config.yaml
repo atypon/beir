@@ -13,4 +13,5 @@ matryoshka_dim: Null                                # Null if you don't want to 
 score_function: cos_sim
 mlflow:
   tracking_uri: "https://mlflow-demo.atypon.com/"
-  experiment_name: 'beir-bge-small-matryoshka'
+  experiment_name: 'beir'
+  run_name: 'bge-small-matryoshka-full'

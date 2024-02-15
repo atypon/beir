@@ -1,7 +1,12 @@
 import argparse
 import yaml
+
+import mlflow
+
 from beir.retrieval import models
 from beir.extensions.experiments  import Experiment
+from beir.extensions.mlflow import get_or_create_experiment, mlflow_flattening
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
@@ -9,20 +14,30 @@ if __name__ == '__main__':
                             '-cf',
                             help='The path of the config file')
     args = arg_parser.parse_args()
-    config_path = args.config_file
-    with open(config_path) as config_file:
-        dataset_configs = yaml.safe_load(config_file)
-    mlflow_configs = dataset_configs['mlflow']
+    with open(args.config_file) as config_file:
+        cfg = yaml.safe_load(config_file)
 
-    ##Load the onnx model and conduct the experiment
-    onnx_model = models.OnnxBERT(onnx_filename=dataset_configs['onnx_filename'],
-                                 model_path=dataset_configs['model_path'],
-                                 matryoshka_dim=dataset_configs['matryoshka_dim']
-                                 )
-    experiment = Experiment(datasets=dataset_configs['datasets'],
-                            datasets_path='datasets',
-                            batch_size=dataset_configs['batch_size'],
-                            onnx_model=onnx_model,
-                            score_function=dataset_configs['score_function'],
-                            mlflow_configs=mlflow_configs)
-    experiment.experiment_pipeline()
+    mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
+    experiment_id = get_or_create_experiment(name=cfg.mlflow.experiment_name)
+
+    with mlflow.start_run(
+        experiment_id=experiment_id,
+        run_name=cfg['mlflow']['run_name']
+    ):
+        mlflow.log_artifact(artifact_path=args.config_file)
+        # Load the onnx model and conduct the experiment
+        onnx_model = models.OnnxBERT(onnx_filename=cfg['onnx_filename'],
+                                    model_path=cfg['model_path'],
+                                    matryoshka_dim=cfg['matryoshka_dim']
+                                    )
+        experiment = Experiment(datasets=cfg['datasets'],
+                                datasets_path='datasets',
+                                batch_size=cfg['batch_size'],
+                                onnx_model=onnx_model,
+                                score_function=cfg['score_function'],
+                                run_name=cfg['mlflow']['run_name'])
+        results, result_paths = experiment.experiment_pipeline()
+        results = mlflow_flattening(results)
+        mlflow.log_metrics(metrics=results)
+        for path in result_paths:
+            mlflow.log_artifact(local_path=path)

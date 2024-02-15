@@ -1,8 +1,6 @@
+import json
 import os
-from typing import List, Dict, Union
-
-import mlflow
-from mlflow.tracking import MlflowClient
+from typing import List, Dict, Union, Tuple
 
 from beir.retrieval.models import OnnxBERT, OnnxBGE
 from beir.retrieval.search.lexical import BM25Search as BM25
@@ -21,7 +19,7 @@ class Experiment(object):
                  onnx_model: Union[OnnxBERT, OnnxBGE],
                  batch_size: int,
                  score_function: str,
-                 mlflow_configs: Dict[str, str]):
+                 run_name: str):
         self.dataset_paths = []
         for dataset in datasets:
             dataset_folder = os.path.join(datasets_path, dataset)
@@ -29,40 +27,54 @@ class Experiment(object):
         self.onnx_model = onnx_model
         self.bs = batch_size
         self.score_func = score_function
-        self.mlflow_configs = mlflow_configs
+        self.results_dir = os.path.join('results', run_name) 
         self.__setup_experiment()
-        self.__setup_mlflow()
+        self.__setup_result_dir()
 
     def __setup_experiment(self):
         self.model = DRES(self.onnx_model, batch_size=self.bs)
         self.retriever = EvaluateRetrieval(self.model, score_function=self.score_func)
 
-    def __setup_mlflow(self):
-        mlflow.set_tracking_uri(uri=self.mlflow_configs['tracking_uri'])
-        self.client = MlflowClient()
-        mlflow_experiment = self.client.get_experiment_by_name(name=self.mlflow_configs['experiment_name'])
-        if mlflow_experiment is None:
-            self.experiment_id = self.client.create_experiment(name=self.mlflow_configs['experiment_name'])
-        else:
-            if dict(mlflow_experiment)['lifecycle_stage'] == 'deleted':
-                self.client.restore_experiment(dict(mlflow_experiment)['experiment_id'])
-            self.experiment_id = dict(mlflow_experiment)['experiment_id']
+    def __setup_result_dir(self):
+        """
+        Creates directory named after the current run to save json file of results
+        """
+        if not os.path.isdir(self.results_dir):
+            os.mkdir(self.dataset_paths)
 
-    def experiment_pipeline(self):
+    def experiment_pipeline(self) -> Tuple[Dict[str, Dict[str, float]], str]:
+        """
+        Run the complete pipeline
+        :return: dictionary of dictionaries containing metrics for each experiment
+                 along with paths with result files
+        """
+        results = {}
+        results_paths = []
         for dataset in self.dataset_paths:
             #try:
             corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
             results = self.retriever.retrieve(corpus=corpus, queries=queries)
-            self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
+            metrics, results_path = self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
+            results[dataset] = metrics
+            results_paths.append(results_path)
             #except Exception as e:
             #    print(e)
             #    print('There is an error in this dataset:', dataset)
+        return results, results_paths
 
     def _track_metric(self,
                       dataset: str,
-                      metric_score: Dict[str, float]):
-        with mlflow.start_run(experiment_id=self.experiment_id, run_name=dataset):
-            mlflow.log_metrics(metric_score)
+                      metric_score: Dict[str, float]) -> str:
+        """
+        Stores results for given dataset in the corresponding json file
+        :param dataset: evaluated dataset
+        :param metric_score: dictionary with metrics
+        :return: path of file that results where stored
+        """
+        path = os.path.join(self.results_dir, dataset)
+        with open(path) as results_file:
+            json.dump(metric_score, results_file)
+        return path
 
     def _rename_metrics(self, metric_score: Dict[str, float]) -> Dict[str, float]:
         renamed_metric = {}
@@ -83,12 +95,13 @@ class Experiment(object):
     def _eval_pipeline(self,
                        qrels: Dict[str, Dict[str, int]],
                        results: Dict[str, Dict[str, float]],
-                       dataset: str) -> None:
+                       dataset: str) -> Tuple[Dict[str, float], str]:
         """
         Evaluation of the results of a pipeline and log them in MLFlow
         :param qrels: the relevance of each query-doc pair
         :param results: the results of the pipeline
         :param dataset: the dataset name
+        :return: dictionary of metrics
         """
         ndcg, _map, recall, precision = self.retriever.evaluate(qrels=qrels,
                                                                 results=results,
@@ -101,12 +114,13 @@ class Experiment(object):
                                                recall=recall,
                                                _map=_map,
                                                precision=precision)
-        self._track_metric(dataset=dataset, metric_score=flatten_metrics)
+        results_path = self._track_metric(dataset=dataset, metric_score=flatten_metrics)
         print('Results for', dataset)
         print('NDCG:', ndcg)
         print("Recall:", recall)
         print('Precision:', precision)
         print('MAP:', _map)
+        return flatten_metrics, results_path
 
 
 class RerankExperiment(Experiment):
@@ -119,11 +133,11 @@ class RerankExperiment(Experiment):
                  score_function: str,
                  es_hostname: str,
                  initialize: bool,
-                 mlflow_configs: Dict[str, str]):
+                 run_name: str):
         self.k = top_k
         self.es_hostname = es_hostname
         self.initialize = initialize
-        super().__init__(datasets, datasets_path, onnx_model, batch_size, score_function, mlflow_configs)
+        super().__init__(datasets, datasets_path, onnx_model, batch_size, score_function, run_name)
 
     def _create_bm25_retriever(self, index_name) -> EvaluateRetrieval:
         model = BM25(index_name=index_name, hostname=self.es_hostname, initialize=self.initialize)
@@ -161,7 +175,7 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
                  score_function: str,
                  es_hostname: str,
                  initialize: bool,
-                 mlflow_configs: Dict[str, str]):
+                 run_name: str):
         """
         Initialize the class by load ing the models
         :param datasets: a list with the datasets to evaluate
@@ -174,7 +188,7 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
         :param score_function: the similarity metric
         :param es_hostname: the hostname of ElasticSearch
         :param initialize: a boolean to decide if we will initialize the ES or not
-        :param mlflow_configs: the MLFlow server configurations
+        :param run_name: the name of the given run
         """
         self.ce = CrossEncoder(ce_model)
         self.ce_batch_size = ce_batch_size
@@ -187,7 +201,7 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
                          score_function=score_function,
                          es_hostname=es_hostname,
                          initialize=initialize,
-                         mlflow_configs=mlflow_configs)
+                         run_name=run_name)
 
     def _rerank_pipeline(self,
                           corpus: Dict[str, Dict[str, str]],
@@ -246,7 +260,7 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
                  score_function: str,
                  es_hostname: str,
                  initialize: bool,
-                 mlflow_configs: Dict[str, str]):
+                 run_name: str):
         """
         Initialize the class by load ing the models
         :param datasets: a list with the datasets to evaluate
@@ -259,7 +273,7 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
         :param score_function: the similarity metric
         :param es_hostname: the hostname of ElasticSearch
         :param initialize: a boolean to decide if we will initialize the ES or not
-        :param mlflow_configs: the MLFlow server configurations
+        :param run_name: the name of the given run
         """
         super().__init__(datasets=datasets,
                          datasets_path=datasets_path,
@@ -271,7 +285,7 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
                          score_function=score_function,
                          es_hostname=es_hostname,
                          initialize=initialize,
-                         mlflow_configs=mlflow_configs)
+                         run_name=run_name)
 
     def _rerank_pipeline(self,
                          corpus: Dict[str, Dict[str, str]],
@@ -307,7 +321,7 @@ class HNSWExperiment(Experiment):
                  ce_batch_size: int,
                  top_k: int,
                  score_function: str,
-                 mlflow_configs: Dict[str, str],
+                 run_name: str,
                  hnsw_store_n: int = 512,
                  hnsw_ef_search: int = 128,
                  hnsw_ef_construction: int = 200,
@@ -329,7 +343,7 @@ class HNSWExperiment(Experiment):
                          onnx_model=onnx_model,
                          batch_size=hnsw_batch_size,
                          score_function=score_function,
-                         mlflow_configs=mlflow_configs)
+                         run_name=run_name)
         self.hnsw_store_n = hnsw_store_n
         self.hnsw_ef_search = hnsw_ef_search
         self.hnsw_ef_construction = hnsw_ef_construction
@@ -389,7 +403,7 @@ class HNSWEMonoT5xperiment(Experiment):
                  ce_batch_size: int,
                  top_k: int,
                  score_function: str,
-                 mlflow_configs: Dict[str, str],
+                 run_name: str,
                  hnsw_store_n: int = 512,
                  hnsw_ef_search: int = 128,
                  hnsw_ef_construction: int = 200,
@@ -413,7 +427,7 @@ class HNSWEMonoT5xperiment(Experiment):
                          onnx_model=onnx_model,
                          batch_size=hnsw_batch_size,
                          score_function=score_function,
-                         mlflow_configs=mlflow_configs)
+                         run_name=run_name)
         self.hnsw_store_n = hnsw_store_n
         self.hnsw_ef_search = hnsw_ef_search
         self.hnsw_ef_construction = hnsw_ef_construction
