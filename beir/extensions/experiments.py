@@ -72,7 +72,7 @@ class Experiment(object):
         :return: path of file that results where stored
         """
         path = os.path.join(self.results_dir, dataset)
-        with open(path) as results_file:
+        with open(path, 'w') as results_file:
             json.dump(metric_score, results_file)
         return path
 
