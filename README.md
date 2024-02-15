@@ -65,6 +65,8 @@ If you want to build from source, use:
 ```python
 $ git clone https://github.com/benchmarkir/beir.git
 $ cd beir
+$ conda create -y --name beir python=3.7
+$ conda activate beir
 $ pip install -e .
 ```
 
