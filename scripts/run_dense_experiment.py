@@ -24,7 +24,7 @@ if __name__ == '__main__':
         experiment_id=experiment_id,
         run_name=cfg['mlflow']['run_name']
     ):
-        mlflow.log_artifact(artifact_path=args.config_file)
+        mlflow.log_artifact(local_path=args.config_file)
         # Load the onnx model and conduct the experiment
         onnx_model = models.OnnxBERT(onnx_filename=cfg['onnx_filename'],
                                     model_path=cfg['model_path'],
