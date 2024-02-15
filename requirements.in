@@ -1,5 +1,7 @@
 elasticsearch==7.9.1
 faiss_cpu
+google-cloud-core==2.3.3
+google-cloud-storage==2.10.0
 huggingface-hub==0.10.0
 mlflow==1.30.0
 numpy==1.21.0
