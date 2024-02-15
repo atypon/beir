@@ -20,6 +20,7 @@ class Experiment(object):
                  batch_size: int,
                  score_function: str,
                  run_name: str):
+        self.datasets = datasets
         self.dataset_paths = []
         for dataset in datasets:
             dataset_folder = os.path.join(datasets_path, dataset)
@@ -50,9 +51,9 @@ class Experiment(object):
         """
         results = {}
         results_paths = []
-        for dataset in self.dataset_paths:
+        for dataset, dataset_path in zip(self.datasets, self.dataset_paths):
             #try:
-            corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
+            corpus, queries, qrels = GenericDataLoader(data_folder=dataset_path).load(split='test')
             results = self.retriever.retrieve(corpus=corpus, queries=queries)
             metrics, results_path = self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
             results[dataset] = metrics
@@ -71,7 +72,7 @@ class Experiment(object):
         :param metric_score: dictionary with metrics
         :return: path of file that results where stored
         """
-        path = os.path.join(self.results_dir, dataset)
+        path = os.path.join(self.results_dir, dataset + '.json')
         with open(path, 'w') as results_file:
             json.dump(metric_score, results_file)
         return path
