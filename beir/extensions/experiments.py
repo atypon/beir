@@ -40,7 +40,7 @@ class Experiment(object):
         Creates directory named after the current run to save json file of results
         """
         if not os.path.isdir(self.results_dir):
-            os.mkdir(self.dataset_paths)
+            os.mkdir(self.results_dir)
 
     def experiment_pipeline(self) -> Tuple[Dict[str, Dict[str, float]], str]:
         """
