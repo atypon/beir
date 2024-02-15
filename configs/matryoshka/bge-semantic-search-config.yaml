@@ -8,10 +8,10 @@ datasets:
   - webis-touche2020
 batch_size: 16
 onnx_filename: model-fp16.onnx
-model_path: model/bge-small-matryoshka
+model_path: models/bge-small
 matryoshka_dim: Null                                # Null if you don't want to use matryoshka dimension
 score_function: cos_sim
 mlflow:
   tracking_uri: "https://mlflow-demo.atypon.com/"
-  experiment_name: 'beir'
+  experiment_name: 'beir-evaluation'
   run_name: 'bge-small-matryoshka-full'
