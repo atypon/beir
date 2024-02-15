@@ -17,8 +17,8 @@ if __name__ == '__main__':
     with open(args.config_file) as config_file:
         cfg = yaml.safe_load(config_file)
 
-    mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
-    experiment_id = get_or_create_experiment(name=cfg.mlflow.experiment_name)
+    mlflow.set_tracking_uri(cfg['mlflow']['tracking_uri'])
+    experiment_id = get_or_create_experiment(name=cfg['mlflow']['experiment_name'])
 
     with mlflow.start_run(
         experiment_id=experiment_id,
