@@ -49,19 +49,19 @@ class Experiment(object):
         :return: dictionary of dictionaries containing metrics for each experiment
                  along with paths with result files
         """
-        results = {}
+        metrics_per_dataset = {}
         results_paths = []
         for dataset, dataset_path in zip(self.datasets, self.dataset_paths):
             #try:
             corpus, queries, qrels = GenericDataLoader(data_folder=dataset_path).load(split='test')
             results = self.retriever.retrieve(corpus=corpus, queries=queries)
             metrics, results_path = self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
-            results[dataset] = metrics
+            metrics_per_dataset[dataset] = metrics
             results_paths.append(results_path)
             #except Exception as e:
             #    print(e)
             #    print('There is an error in this dataset:', dataset)
-        return results, results_paths
+        return metrics_per_dataset, results_paths
 
     def _track_metric(self,
                       dataset: str,

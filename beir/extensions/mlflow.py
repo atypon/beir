@@ -28,6 +28,6 @@ def mlflow_flattening(
     :return: flattened dictionary
     """
     return {
-        dataset + '_' + metric: result for dataset in per_dataset_metrics \
+        dataset + '-' + metric: result for dataset in per_dataset_metrics \
             for metric, result in per_dataset_metrics[dataset].items()
     }
