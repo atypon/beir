@@ -1,7 +1,9 @@
 import os
 from typing import List, Dict, Union
+
 import mlflow
 from mlflow.tracking import MlflowClient
+
 from beir.retrieval.models import OnnxBERT, OnnxBGE
 from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.datasets.data_loader import GenericDataLoader

@@ -1,7 +1,9 @@
 import argparse
 import yaml
+
 from beir.retrieval import models
-from experiments.experiment import RerankExperiment
+from beir.extensions.experiments  import RerankExperiment
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
