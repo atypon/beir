@@ -8,12 +8,13 @@ datasets:
   - webis-touche2020
 datasets_path: datasets
 batch_size: 32
-onnx_filename: bge_mean_filtered_fp16_optimized.onnx
-model_path: onnx_models
+onnx_filename: model.onnx
+model_path: models/bge-production
 score_function: cos_sim
 mlflow:
   tracking_uri: "https://mlflow-demo.atypon.com/"
-  experiment_name: 'beir-faiss-bge-small-triple-and-filtered'
+  experiment_name: 'beir-evaluation'
+  run_name: 'bge-production-instruction'
 bge:
   enable_query_instruction: True
   query_instruction: "Represent this sentence for searching relevant passages:"
