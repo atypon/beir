@@ -28,6 +28,7 @@ if __name__ == '__main__':
         # Load the onnx model and conduct the experiment
         onnx_model = models.OnnxBGE(onnx_filename=cfg['onnx_filename'],
                                     model_path=cfg['model_path'],
+                                    matryoshka_dim=cfg['matryoshka_dim'],
                                     enable_query_instruction=cfg["bge"]["enable_query_instruction"],
                                     query_instruction=cfg["bge"]["query_instruction"],
                                     cls=cfg["bge"]["cls"])
