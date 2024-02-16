@@ -129,6 +129,7 @@ class OnnxBGE(OnnxBERT):
         self.enable_query_instruction = enable_query_instruction
         super().__init__(onnx_filename=onnx_filename,
                          model_path=model_path,
+                         matryoshka_dim=matryoshka_dim,
                          sep=sep,
                          cls=cls,
                          kwargs=kwargs)
