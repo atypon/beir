@@ -15,3 +15,6 @@ mlflow:
   tracking_uri: "https://mlflow-demo.atypon.com/"
   experiment_name: 'beir-evaluation'
   run_name: 'bge-small-matryoshka-full'
+enable_query_instruction: False
+query_instruction: ""
+cls: False

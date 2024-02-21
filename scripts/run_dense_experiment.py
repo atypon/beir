@@ -26,10 +26,13 @@ if __name__ == '__main__':
     ):
         mlflow.log_artifact(local_path=args.config_file)
         # Load the onnx model and conduct the experiment
-        onnx_model = models.OnnxBERT(onnx_filename=cfg['onnx_filename'],
+        onnx_model = models.OnnxBGE(onnx_filename=cfg['onnx_filename'],
                                     model_path=cfg['model_path'],
-                                    matryoshka_dim=cfg['matryoshka_dim']
-                                    )
+                                    matryoshka_dim=cfg['matryoshka_dim'],
+                                    query_instruction=cfg['query_instruction'],
+                                    enable_query_instruction=cfg['enable_query_instruction'],
+                                    cls=cfg['cls']
+        )
         experiment = Experiment(datasets=cfg['datasets'],
                                 datasets_path='datasets',
                                 batch_size=cfg['batch_size'],
