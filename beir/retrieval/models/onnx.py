@@ -119,6 +119,7 @@ class OnnxBGE(OnnxBERT):
     def __init__(self,
                  onnx_filename: Union[str, Tuple],
                  model_path: Union[str, Tuple] = None,
+                 matryoshka_dim: Union[int, None] = None,
                  sep: str = " ",
                  query_instruction: str = "",
                  enable_query_instruction: bool = False,
@@ -128,6 +129,7 @@ class OnnxBGE(OnnxBERT):
         self.enable_query_instruction = enable_query_instruction
         super().__init__(onnx_filename=onnx_filename,
                          model_path=model_path,
+                         matryoshka_dim=matryoshka_dim,
                          sep=sep,
                          cls=cls,
                          kwargs=kwargs)
@@ -148,10 +150,13 @@ class OnnxBGE(OnnxBERT):
             batches = tqdm(batchified_queries)
         for batch in batches:
             inputs = self._create_ort_input(queries=batch)
+            model_out = self.q_model.run([], inputs)[0]
+            if self.matryoshka_dim is not None:
+                model_out = model_out[..., :self.matryoshka_dim]
             if self.cls:
-                batch_q_embs = list(self.q_model.run([], inputs)[0][:, 0, :])
+                batch_q_embs = list(model_out[:, 0, :])
                 query_embeddings += batch_q_embs
             else:
-                query_embeddings += list(self.q_model.run([], inputs)[0])
+                query_embeddings += list(model_out)
         query_embeddings = np.asarray(query_embeddings)
         return query_embeddings

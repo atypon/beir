@@ -1,4 +1,9 @@
+from os import path
 from setuptools import setup, find_packages
+import re
+
+requirements_file = path.join(path.dirname(__file__), "requirements.in")
+requirements = [r for r in open(requirements_file).read().split("\n") if not re.match(r"^\-", r)]
 
 with open("README.md", mode="r", encoding="utf-8") as readme_file:
     readme = readme_file.read()
@@ -20,18 +25,7 @@ setup(
     download_url="https://github.com/beir-cellar/beir/archive/v1.0.0.zip",
     packages=find_packages(),
     python_requires='>=3.6',
-    install_requires=[
-        'huggingface-hub==0.10.0',
-        'protobuf==3.20.1',
-        'scikit-learn==0.21.0',
-        'scipy==1.5.0',
-        'numpy==1.21.0',
-        'sentence-transformers==2.0.0',
-        'pytrec_eval',
-        'faiss_cpu',
-        'elasticsearch==7.9.1',
-        'onnxruntime-gpu==1.12.0'
-    ],
+    install_requires=requirements,
     extras_require=optional_packages,
     classifiers=[
         "Development Status :: 4 - Beta",
