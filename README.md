@@ -10,8 +10,10 @@ For this extension, the main beir is installed as a library. To set up run the f
 git clone https://github.com/atypon/beir.git
 conda create -y --name beir python=3.11
 conda activate beir
-pip3 install -e .
+pip3 install -e . --index-url https://download.pytorch.org/whl/cu126
 ```
+
+To enable `flash-attn` then run `pip install flash-attn==2.7.4.post1 --no-build-isolation`
 
 ## Scripts
 

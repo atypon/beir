@@ -29,7 +29,7 @@ model:
   score_function: cos_sim
   sep: ' ' # Seperator between different fields of the documents in corpus eg title, text, etc.
   model_kwargs:
-    attention_implementation: flash_attention_2  # Use 'flash_attention_2' for better performance
+    attn_implementation: flash_attention_2  # Use 'flash_attention_2' for better performance
     device_map: auto  # Automatically set device map for distributed inference
   tokenizer_kwargs:
     padding_side: left  # Padding side left for decoder architectures
