@@ -76,10 +76,10 @@ class Experiment(object):
             )
         elif self.model_type == 'sentence_transformers':
             self.model = SentenceTransformersModel(
-                model_path=self.model_name_or_path,
+                model_name=self.model_name_or_path,
                 matryoshka_dim=self.matryoshka_dim,
                 query_prompt=query_prompt,
-                document_prompt=document_prompt,
+                corpus_prompt=document_prompt,
             )
         self.model = DRES(self.model, batch_size=self.batch_size)
         self.retriever = EvaluateRetrieval(

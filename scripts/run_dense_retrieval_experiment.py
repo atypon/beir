@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import mlflow
 from mlflow.tracking.request_header.registry import \
@@ -33,7 +34,7 @@ if __name__ == '__main__':
         experiment = Experiment(
             datasets=dict(cfg.datasets),
             datasets_path='datasets',
-            results_dir=cfg.mlflow.run_name,
+            results_dir=os.path.join('results', cfg.mlflow.run_name),
             model_type=cfg.model.type,
             model_name_or_path=cfg.model.name_or_path,
             tokenizer_name_or_path=cfg.model.tokenizer_name_or_path,

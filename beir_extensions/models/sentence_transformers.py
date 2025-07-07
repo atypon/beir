@@ -40,6 +40,9 @@ class SentenceTransformersModel(CustomModel):
             trust_remote_code=True,
             truncate_dim=matryoshka_dim
         )
+        # Half model if possible
+        if torch.cuda.is_available():
+            self.model.half()
         self.query_prompt = query_prompt
         self.corpus_prompt = corpus_prompt
         self.query_prompt_name = query_prompt_name
