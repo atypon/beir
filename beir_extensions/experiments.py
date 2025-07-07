@@ -3,15 +3,15 @@ import os
 from typing import Literal
 
 from beir.datasets.data_loader import GenericDataLoader
-from beir.extensions.models.base_model import CustomModel
+from beir_extensions.models.base_model import CustomModel
 from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.reranking.models.cross_encoder import CrossEncoder
 from beir.reranking import Rerank
 from beir.retrieval.evaluation import EvaluateRetrieval
 from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
 
-from beir.extensions.models.onnx import OnnxModel
-from beir.extensions.models.sentence_transformers import \
+from beir_extensions.models.onnx import OnnxModel
+from beir_extensions.models.sentence_transformers import \
     SentenceTransformersModel
 
 

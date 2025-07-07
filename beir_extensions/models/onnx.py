@@ -4,7 +4,7 @@ from onnxruntime import InferenceSession
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-from beir.extensions.models.base_model import CustomModel
+from beir_extensions.models.base_model import CustomModel
 
 
 class OnnxModel(CustomModel):

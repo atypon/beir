@@ -154,4 +154,3 @@ class OnnxConverter:
             y=logits,
             decimal=decimals
         )
-    

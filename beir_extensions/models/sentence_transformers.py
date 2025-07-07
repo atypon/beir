@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
 
-from beir.extensions.models.base_model import CustomModel
+from beir_extensions.models.base_model import CustomModel
 
 
 class SentenceTransformersModel(CustomModel):

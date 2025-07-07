@@ -1,10 +1,13 @@
 import argparse
 
 import mlflow
+from mlflow.tracking.request_header.registry import \
+    _request_header_provider_registry
 
-from beir.extensions.configs import load_configurations
-from beir.extensions.experiments import Experiment
-from beir.extensions.mlflow import get_or_create_experiment, mlflow_flattening
+from beir_extensions.configs import load_configurations
+from beir_extensions.experiments import Experiment
+from beir_extensions.mlflow import get_or_create_experiment, \
+    mlflow_flattening, CustomHeaderProvider
 
 
 if __name__ == '__main__':
@@ -18,6 +21,7 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
     cfg = load_configurations(path=args.config_file)
 
+    _request_header_provider_registry.register(CustomHeaderProvider)
     mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
     experiment_id = get_or_create_experiment(name=cfg.mlflow.experiment_name)
 
