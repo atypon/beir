@@ -1,14 +1,14 @@
 import torch
 from transformers import AutoModel, AutoTokenizer
 
-from beir.extensions.configs import load_configurations
-from beir.extensions.onnx_conversion import OnnxConverter
+from beir_extensions.configs import load_configurations
+from beir_extensions.onnx_conversion import OnnxConverter
 
 
 if __name__ == '__main__':
 
     cfg = load_configurations('configs/onnx_conversion.yaml')
-    
+
     model = AutoModel.from_pretrained(cfg.model)
     tokenizer = AutoTokenizer.from_pretrained(cfg.model, padding_side='left')
 

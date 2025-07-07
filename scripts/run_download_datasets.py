@@ -2,7 +2,8 @@ import argparse
 import os
 
 from beir import util
-from beir.extensions.configs import load_configurations
+
+from beir_extensions.configs import load_configurations
 
 
 def download_datasets(datasets: list[str], datasets_path: str) -> None:
