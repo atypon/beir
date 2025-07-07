@@ -1,6 +1,6 @@
 datasets:
   scifact:
-    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that it is similar to the query\nQuery:"
     document_instruction: Null
   trec-covid-beir:
     query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
@@ -15,14 +15,14 @@ datasets:
     query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
     document_instruction: Null
   scidocs:
-    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that it is similar to the query\nQuery:"
     document_instruction: Null
   webis-touche2020:
     query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
     document_instruction: Null
 model:
   type: sentence_transformers
-  batch_size: 4
+  batch_size: 16
   name_or_path: Qwen/Qwen3-Embedding-0.6B
   tokenizer_name_or_path: Qwen/Qwen3-Embedding-0.6B
   matryoshka_dim: Null  # Null if you don't want to use matryoshka dimension, otherwise select integer value
@@ -34,6 +34,7 @@ model:
     torch_dtype: float16  # Use bfloat16, float16, or float for model precision
   tokenizer_kwargs:
     padding_side: left  # Padding side left for decoder architectures
+    model_max_length: 2048  # Set max length for the tokenizer
 mlflow:
   tracking_uri: https://rnd-mlflow.literatumonline.com/
   experiment_name: beir-evaluation
