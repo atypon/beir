@@ -14,3 +14,7 @@ pip3 install -e .
 ```
 
 ## Scripts
+
+- `run_onnx_conversion.py` : Convert the specified model to onnx format.
+- `run_download_datasets.py`: After pointing to a config file that contains the desired datasets, it downloads them.
+- `run_dense_retrieval_experiment.py` : Performs dense retrieval evaluation od the desired datasets with the speficied model. Model can be `ONNXModel` or `SentenceTransformerModel`. By subclassing from `CustomModel` in `beir_extensions/models`, aby desired behaviours can be achieved. Check `dense_retrieval_experiment.yaml` and `dense_retrieval_experiment_onnx.yaml` for setting up the experiment properly.
