@@ -34,7 +34,8 @@ class Experiment(object):
         cls: bool | None = None,
         matryoshka_dim: int | None = None,
         score_function: str = 'cos_sim',
-
+        model_kwargs: dict | None = None,
+        tokenizer_kwargs: dict | None = None,
     ):
         """
         Initialize the experiment with the datasets and model configurations.
@@ -55,6 +56,8 @@ class Experiment(object):
         self.score_func = score_function
         if not os.path.isdir(self.results_dir):
             os.mkdir(self.results_dir)
+        self.model_kwargs = model_kwargs
+        self.tokenizer_kwargs = tokenizer_kwargs
 
     def __setup_models_for_dataset(
         self,
@@ -72,7 +75,8 @@ class Experiment(object):
                 query_prompt=query_prompt,
                 document_prompt=document_prompt,
                 sep=self.sep,
-                cls=self.cls
+                cls=self.cls,
+                tokenizer_kwargs=self.tokenizer_kwargs
             )
         elif self.model_type == 'sentence_transformers':
             self.model = SentenceTransformersModel(
@@ -81,6 +85,8 @@ class Experiment(object):
                 query_prompt=query_prompt,
                 corpus_prompt=document_prompt,
                 sep=self.sep,
+                model_kwargs=self.model_kwargs,
+                tokenizer_kwargs=self.tokenizer_kwargs,
             )
         self.model = DRES(self.model, batch_size=self.batch_size)
         self.retriever = EvaluateRetrieval(

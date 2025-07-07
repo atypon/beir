@@ -43,6 +43,8 @@ if __name__ == '__main__':
             score_function=cfg.model.score_function,
             sep=cfg.model.sep,
             cls=None if 'cls' not in cfg.model else cfg.model.cls,
+            model_kwargs=cfg.model.model_kwargs,
+            tokenizer_kwargs=cfg.model.tokenizer_kwargs
         )
         results, result_paths = experiment.experiment_pipeline()
 

@@ -17,7 +17,7 @@ class OnnxModel(CustomModel):
         corpus_prompt: str | None = None,
         sep: str = " ",
         cls: bool = False,
-        **kwargs
+        tokenizer_kwargs: dict | None = None,
     ):
         """
         Initialize the OnnxModel.
@@ -34,11 +34,18 @@ class OnnxModel(CustomModel):
         :param sep: Separator to use between title and text in
             corpus documents.
         :param cls: Whether to return only the CLS token embedding.
-        :param kwargs: Additional keyword arguments.
+        :param tokenizer_kwargs: Additional keyword arguments for the
+            tokenizer.
         """
         self.sep = sep
         self.cls = cls
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        # Update tokenizer with additional kwargs if provided
+        if tokenizer_kwargs is not None:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                tokenizer_path, **tokenizer_kwargs
+            )
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         self.matryoshka_dim = matryoshka_dim
         self.query_prompt = query_prompt
         self.corpus_prompt = corpus_prompt

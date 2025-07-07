@@ -19,6 +19,8 @@ class SentenceTransformersModel(CustomModel):
         query_prompt_name: str | None = None,
         corpus_prompt_name: str | None = None,
         sep: str = " ",
+        model_kwargs: dict | None = None,
+        tokenizer_kwargs: dict | None = None,
     ):
         """
         Initialize the SentenceTransformers model.
@@ -36,11 +38,16 @@ class SentenceTransformersModel(CustomModel):
             If None, no name is used. If a prompt is provided, this will be
             ignored.
         :param sep: Separator to use between title and text in corpus
+        :param model_kwargs: Additional keyword arguments for the model.
+        :param tokenizer_kwargs: Additional keyword arguments for the
+            tokenizer.
         """
         self.model = SentenceTransformer(
             model_name_or_path=model_name,
             trust_remote_code=True,
-            truncate_dim=matryoshka_dim
+            truncate_dim=matryoshka_dim,
+            model_kwargs=model_kwargs,
+            tokenizer_kwargs=tokenizer_kwargs,
         )
         # Half model if possible
         if torch.cuda.is_available():
