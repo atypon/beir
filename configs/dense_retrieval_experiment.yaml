@@ -27,6 +27,7 @@ model:
   tokenizer_name_or_path: Qwen/Qwen3-Embedding-0.6B
   matryoshka_dim: Null  # Null if you don't want to use matryoshka dimension, otherwise select integer value
   score_function: cos_sim
+  sep: ' ' # Seperator between different fields of the documents in corpus eg title, text, etc.
 mlflow:
   tracking_uri: https://rnd-mlflow.literatumonline.com/
   experiment_name: beir-evaluation

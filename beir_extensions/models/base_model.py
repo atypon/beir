@@ -34,7 +34,7 @@ class CustomModel(ABC):
     @abstractmethod
     def encode_corpus(
         self,
-        corpus: list[str],
+        corpus: list[dict[str, str]],
         batch_size: int,
         show_progress_bar: bool = True,
         convert_to_tensor: bool = False
@@ -42,7 +42,8 @@ class CustomModel(ABC):
         """
         Encode a corpus into embeddings.
 
-        :param corpus: List of documents in the corpus.
+        :param corpus: List of documents in corpus
+            (list of dicts with fields "title", "text").
         :param batch_size: Batch size for encoding.
         :param show_progress_bar: Whether to show a progress bar during
             encoding.

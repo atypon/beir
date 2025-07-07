@@ -41,7 +41,7 @@ if __name__ == '__main__':
             batch_size=cfg.model.batch_size,
             matryoshka_dim=cfg.model.matryoshka_dim,
             score_function=cfg.model.score_function,
-            sep=None if 'sep' not in cfg.model else cfg.model.sep,
+            sep=cfg.model.sep,
             cls=None if 'cls' not in cfg.model else cfg.model.cls,
         )
         results, result_paths = experiment.experiment_pipeline()

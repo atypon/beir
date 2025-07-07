@@ -17,7 +17,8 @@ class SentenceTransformersModel(CustomModel):
         query_prompt: str | None = None,
         corpus_prompt: str | None = None,
         query_prompt_name: str | None = None,
-        corpus_prompt_name: str | None = None
+        corpus_prompt_name: str | None = None,
+        sep: str = " ",
     ):
         """
         Initialize the SentenceTransformers model.
@@ -34,6 +35,7 @@ class SentenceTransformersModel(CustomModel):
         :param corpus_prompt_name: Optional name for the corpus prompt.
             If None, no name is used. If a prompt is provided, this will be
             ignored.
+        :param sep: Separator to use between title and text in corpus
         """
         self.model = SentenceTransformer(
             model_name_or_path=model_name,
@@ -47,6 +49,7 @@ class SentenceTransformersModel(CustomModel):
         self.corpus_prompt = corpus_prompt
         self.query_prompt_name = query_prompt_name
         self.corpus_prompt_name = corpus_prompt_name
+        self.sep = sep
 
     def encode_queries(
         self,
@@ -75,20 +78,25 @@ class SentenceTransformersModel(CustomModel):
 
     def encode_corpus(
         self,
-        corpus: list[str],
+        corpus: list[dict[str, str]],
         batch_size: int,
         show_progress_bar: bool = True,
         convert_to_tensor: bool = False,
     ) -> np.ndarray | torch.Tensor:
         """
         Encode a corpus into embeddings.
-        :param corpus: List of documents in the corpus.
+        :param corpus: List of documents in corpus
+            (list of dicts with fields "title", "text").
         :param batch_size: Batch size for encoding.
 
         :param show_progress_bar: Whether to show a progress bar during
             encoding.
         :return: List of corpus embeddings.
         """
+        corpus = [
+            (doc["title"] + self.sep + doc["text"]).strip()
+            if "title" in doc else doc["text"].strip() for doc in corpus
+        ]
         corpus_embeddings = self.model.encode(
             corpus,
             prompt=self.corpus_prompt,

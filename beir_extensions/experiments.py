@@ -80,6 +80,7 @@ class Experiment(object):
                 matryoshka_dim=self.matryoshka_dim,
                 query_prompt=query_prompt,
                 corpus_prompt=document_prompt,
+                sep=self.sep,
             )
         self.model = DRES(self.model, batch_size=self.batch_size)
         self.retriever = EvaluateRetrieval(
