@@ -31,6 +31,7 @@ model:
   model_kwargs:
     attn_implementation: flash_attention_2  # Use 'flash_attention_2' for better performance
     device_map: auto  # Automatically set device map for distributed inference
+    torch_dtype: float16  # Use bfloat16, float16, or float for model precision
   tokenizer_kwargs:
     padding_side: left  # Padding side left for decoder architectures
 mlflow:

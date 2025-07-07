@@ -42,6 +42,13 @@ class SentenceTransformersModel(CustomModel):
         :param tokenizer_kwargs: Additional keyword arguments for the
             tokenizer.
         """
+        if 'torch_dtype' in model_kwargs:
+            if model_kwargs['torch_dtype'] == 'bfloat16':
+                model_kwargs['torch_dtype'] = torch.bfloat16
+            elif model_kwargs['torch_dtype'] == 'float16':
+                model_kwargs['torch_dtype'] = torch.float16
+            elif model_kwargs['torch_dtype'] == 'float':
+                model_kwargs['torch_dtype'] = torch.float
         self.model = SentenceTransformer(
             model_name_or_path=model_name,
             trust_remote_code=True,
@@ -49,9 +56,6 @@ class SentenceTransformersModel(CustomModel):
             model_kwargs=model_kwargs,
             tokenizer_kwargs=tokenizer_kwargs,
         )
-        # Half model if possible
-        if torch.cuda.is_available():
-            self.model.half()
         self.query_prompt = query_prompt
         self.corpus_prompt = corpus_prompt
         self.query_prompt_name = query_prompt_name
