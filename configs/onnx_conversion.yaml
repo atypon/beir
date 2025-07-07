@@ -1,0 +1,6 @@
+model: Qwen/Qwen3-Embedding-0.6B
+tokenizer: Qwen/Qwen3-Embedding-0.6B
+max_length: 8192
+onnx_opset_version: 14
+onnx_file: models/model.onnx
+onnx_file_fp16: models/model-fp16.onnx

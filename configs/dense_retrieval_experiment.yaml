@@ -1,0 +1,33 @@
+datasets:
+  scifact:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+  trec-covid-beir:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+  fiqa:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+  quora:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+  nfcorpus:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+  scidocs:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+  webis-touche2020:
+    query_instruction: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+    document_instruction: Null
+model:
+  type: sentence_transformers
+  batch_size: 32
+  name_or_path: Qwen/Qwen3-Embedding-0.6B
+  tokenizer_name_or_path: Qwen/Qwen3-Embedding-0.6B
+  matryoshka_dim: Null  # Null if you don't want to use matryoshka dimension, otherwise select integer value
+  score_function: cos_sim
+mlflow:
+  tracking_uri: https://mlflow-demo.atypon.com/
+  experiment_name: beir-evaluation
+  run_name: bge-base-matryoshka-full-instruction

@@ -1,71 +1,127 @@
 import json
 import os
-from typing import List, Dict, Union, Tuple
+from typing import Literal
 
-from beir.retrieval.models import OnnxBERT, OnnxBGE
-from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.datasets.data_loader import GenericDataLoader
-from beir.retrieval.search.dense import HNSWFaissSearch
+from beir.extensions.models.base_model import CustomModel
+from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.reranking.models.cross_encoder import CrossEncoder
-from beir.reranking.models.mono_t5 import MonoT5
 from beir.reranking import Rerank
 from beir.retrieval.evaluation import EvaluateRetrieval
 from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
 
+from beir.extensions.models.onnx import OnnxModel
+from beir.extensions.models.sentence_transformers import \
+    SentenceTransformersModel
+
 
 class Experiment(object):
-    def __init__(self, datasets: List[str],
-                 datasets_path: str,
-                 onnx_model: Union[OnnxBERT, OnnxBGE],
-                 batch_size: int,
-                 score_function: str,
-                 run_name: str):
+
+    """
+    A class that conducats the experiment on the desired datasets.
+    """
+
+    def __init__(
+        self,
+        datasets: dict[str, dict[str, str]],
+        datasets_path: str,
+        results_dir: str,
+        model_type: Literal['onnx', 'sentence_transformers'],
+        model_name_or_path: str,
+        tokenizer_name_or_path: str,
+        batch_size: int,
+        sep: str | None,
+        cls: bool | None = None,
+        matryoshka_dim: int | None = None,
+        score_function: str = 'cos_sim',
+
+    ):
+        """
+        Initialize the experiment with the datasets and model configurations.
+        """
         self.datasets = datasets
         self.dataset_paths = []
         for dataset in datasets:
             dataset_folder = os.path.join(datasets_path, dataset)
             self.dataset_paths.append(dataset_folder)
-        self.onnx_model = onnx_model
-        self.bs = batch_size
+        self.results_dir = results_dir
+        self.model_type = model_type
+        self.model_name_or_path = model_name_or_path
+        self.tokenizer_name_or_path = tokenizer_name_or_path
+        self.batch_size = batch_size
+        self.sep = sep
+        self.cls = cls
+        self.matryoshka_dim = matryoshka_dim
         self.score_func = score_function
-        self.results_dir = os.path.join('results', run_name) 
-        self.__setup_experiment()
-        self.__setup_result_dir()
 
-    def __setup_experiment(self):
-        self.model = DRES(self.onnx_model, batch_size=self.bs)
-        self.retriever = EvaluateRetrieval(self.model, score_function=self.score_func)
+    def __setup_models_for_dataset(
+        self,
+        query_prompt: str | None = None,
+        document_prompt: str | None = None
+    ):
+        """
+        Sets up the model and retriever for the dataset experiment.
+        """
+        if self.model_type == 'onnx':
+            self.model = OnnxModel(
+                onnx_path=self.model_name_or_path,
+                tokenizer_path=self.tokenizer_name_or_path,
+                matryoshka_dim=self.matryoshka_dim,
+                query_prompt=query_prompt,
+                document_prompt=document_prompt,
+                sep=self.sep,
+                cls=self.cls
+            )
+        elif self.model_type == 'sentence_transformers':
+            self.model = SentenceTransformersModel(
+                model_path=self.model_name_or_path,
+                matryoshka_dim=self.matryoshka_dim,
+                query_prompt=query_prompt,
+                document_prompt=document_prompt,
+            )
+        self.model = DRES(self.model, batch_size=self.batch_size)
+        self.retriever = EvaluateRetrieval(
+            self.model,
+            score_function=self.score_func
+        )
 
     def __setup_result_dir(self):
         """
-        Creates directory named after the current run to save json file of results
+        Creates directory named after the current run to save json
+        file of results
         """
         if not os.path.isdir(self.results_dir):
             os.mkdir(self.results_dir)
 
-    def experiment_pipeline(self) -> Tuple[Dict[str, Dict[str, float]], str]:
+    def experiment_pipeline(self) -> tuple[dict[str, dict[str, float]], str]:
         """
         Run the complete pipeline
-        :return: dictionary of dictionaries containing metrics for each experiment
-                 along with paths with result files
+        :return: dictionary of dictionaries containing metrics for
+            each experiment along with paths with result files
         """
         metrics_per_dataset = {}
         results_paths = []
         for dataset, dataset_path in zip(self.datasets, self.dataset_paths):
-            #try:
-            corpus, queries, qrels = GenericDataLoader(data_folder=dataset_path).load(split='test')
+
+            corpus, queries, qrels = GenericDataLoader(
+                data_folder=dataset_path
+            ).load(split='test')
+            self.__setup_models_for_dataset(
+                query_prompt=self.datasets[dataset]['query_instruction'],
+                document_prompt=self.datasets[dataset]['document_instruction']
+            )
             results = self.retriever.retrieve(corpus=corpus, queries=queries)
-            metrics, results_path = self._eval_pipeline(qrels=qrels, results=results, dataset=dataset)
+            metrics, results_path = self._eval_pipeline(
+                qrels=qrels,
+                results=results, dataset=dataset
+            )
             metrics_per_dataset[dataset] = metrics
             results_paths.append(results_path)
-            #except Exception as e:
-            #    print(e)
-            #    print('There is an error in this dataset:', dataset)
         return metrics_per_dataset, results_paths
 
     def _track_metric(self,
                       dataset: str,
-                      metric_score: Dict[str, float]) -> str:
+                      metric_score: dict[str, float]) -> str:
         """
         Stores results for given dataset in the corresponding json file
         :param dataset: evaluated dataset
@@ -77,26 +133,44 @@ class Experiment(object):
             json.dump(metric_score, results_file)
         return path
 
-    def _rename_metrics(self, metric_score: Dict[str, float]) -> Dict[str, float]:
+    def _rename_metrics(
+        self,
+        metric_score: dict[str, float]
+    ) -> dict[str, float]:
+        """
+        Rename the metrics to remove '@' from the metric names
+        :param metric_score: dictionary with metrics
+        :return: dictionary with renamed metrics"""
         renamed_metric = {}
         for metric, score in metric_score.items():
             renamed_metric[metric.replace('@', '_')] = score
         return renamed_metric
 
-    def _concat_metrics(self,
-                        ndcg: Dict[str, float],
-                        recall: Dict[str, float],
-                        _map: Dict[str, float],
-                        precision: Dict[str, float]) -> Dict[str, float]:
+    def _concat_metrics(
+        self,
+        ndcg: dict[str, float],
+        recall: dict[str, float],
+        _map: dict[str, float],
+        precision: dict[str, float]
+    ) -> dict[str, float]:
+        """
+        Concatenate the metrics into a single dictionary
+        :param ndcg: dictionary with ndcg metrics
+        :param recall: dictionary with recall metrics
+        :param _map: dictionary with map metrics
+        :param precision: dictionary with precision metrics
+        :return: dictionary with all metrics"""
         flatten_metrics = {}
         for metric in (ndcg, recall, _map, precision):
             flatten_metrics.update(metric)
         return flatten_metrics
 
-    def _eval_pipeline(self,
-                       qrels: Dict[str, Dict[str, int]],
-                       results: Dict[str, Dict[str, float]],
-                       dataset: str) -> Tuple[Dict[str, float], str]:
+    def _eval_pipeline(
+        self,
+        qrels: dict[str, dict[str, int]],
+        results: dict[str, dict[str, float]],
+        dataset: str
+    ) -> tuple[dict[str, float], str]:
         """
         Evaluation of the results of a pipeline and log them in MLFlow
         :param qrels: the relevance of each query-doc pair
@@ -104,9 +178,11 @@ class Experiment(object):
         :param dataset: the dataset name
         :return: dictionary of metrics
         """
-        ndcg, _map, recall, precision = self.retriever.evaluate(qrels=qrels,
-                                                                results=results,
-                                                                k_values=self.retriever.k_values)
+        ndcg, _map, recall, precision = self.retriever.evaluate(
+            qrels=qrels,
+            results=results,
+            k_values=self.retriever.k_values
+        )
         ndcg = self._rename_metrics(metric_score=ndcg)
         _map = self._rename_metrics(metric_score=_map)
         recall = self._rename_metrics(metric_score=recall)
@@ -115,7 +191,10 @@ class Experiment(object):
                                                recall=recall,
                                                _map=_map,
                                                precision=precision)
-        results_path = self._track_metric(dataset=dataset, metric_score=flatten_metrics)
+        results_path = self._track_metric(
+            dataset=dataset,
+            metric_score=flatten_metrics
+        )
         print('Results for', dataset)
         print('NDCG:', ndcg)
         print("Recall:", recall)
@@ -126,9 +205,9 @@ class Experiment(object):
 
 class RerankExperiment(Experiment):
     def __init__(self,
-                 datasets: List[str],
+                 datasets: list[str],
                  datasets_path: str,
-                 onnx_model: OnnxBERT,
+                 onnx_model: CustomModel,
                  batch_size: int,
                  top_k: int,
                  score_function: str,
@@ -166,9 +245,9 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
     An extention class where the results of the RerankExperiment pipeline will be reranked based on a cross encoder
     """
     def __init__(self,
-                 datasets: List[str],
+                 datasets: list[str],
                  datasets_path: str,
-                 onnx_model: OnnxBERT,
+                 onnx_model: CustomModel,
                  ce_model: str,
                  bi_batch_size: int,
                  ce_batch_size: int,
@@ -205,10 +284,10 @@ class RerankBiCrossEncodersExperiment(RerankExperiment):
                          run_name=run_name)
 
     def _rerank_pipeline(self,
-                          corpus: Dict[str, Dict[str, str]],
-                          queries: Dict[str, str],
+                          corpus: dict[str, dict[str, str]],
+                          queries: dict[str, str],
                           index_name: str) \
-            -> Dict[str, Dict[str, float]]:
+            -> dict[str, dict[str, float]]:
         """
         perform all the rerank steps of the pipeline
         :param corpus: the corpus of a specific dataset
@@ -251,9 +330,9 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
     BM25 + CE rerank experiment
     """
     def __init__(self,
-                 datasets: List[str],
+                 datasets: list[str],
                  datasets_path: str,
-                 onnx_model: OnnxBERT,
+                 onnx_model: CustomModel,
                  ce_model: str,
                  bi_batch_size: int,
                  ce_batch_size: int,
@@ -289,9 +368,9 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
                          run_name=run_name)
 
     def _rerank_pipeline(self,
-                         corpus: Dict[str, Dict[str, str]],
-                         queries: Dict[str, str],
-                         index_name: str) -> Dict[str, Dict[str, float]]:
+                         corpus: dict[str, dict[str, str]],
+                         queries: dict[str, str],
+                         index_name: str) -> dict[str, dict[str, float]]:
         """
                perform all the rerank steps of the pipeline
                :param corpus: the corpus of a specific dataset
@@ -306,132 +385,3 @@ class BM25CrossEncoderExperiment(RerankBiCrossEncodersExperiment):
                                                  results=bm25_results,
                                                  top_k=self.k)
         return ce_rerank_results
-
-
-class HNSWExperiment(Experiment):
-    """
-    A class that represents the experiment where the first step is hswn and the second one a cross encoder
-    """
-
-    def __init__(self,
-                 datasets: List[str],
-                 datasets_path: str,
-                 onnx_model: OnnxBERT,
-                 ce_model: str,
-                 hnsw_batch_size: int,
-                 ce_batch_size: int,
-                 top_k: int,
-                 score_function: str,
-                 run_name: str,
-                 hnsw_store_n: int = 512,
-                 hnsw_ef_search: int = 128,
-                 hnsw_ef_construction: int = 200,
-                 ):
-        """
-         Initialize the class by load ing the models
-        :param datasets: a list with the datasets to evaluate
-        :param datasets_path: the path we stored the datasets
-        :param onnx_model: the onnx bi-encoder
-        :param ce_model: the hf card of the cross encoder model
-        :param hnsw_batch_size: the batch size for the bi-encoder step in hswn algorithm.
-        :param ce_batch_size: the batch size for the cross-encoder step
-        :param top_k: retrieve top_k results using the bi-encoder
-        :param score_function: the similarity metric
-        """
-        self.k = top_k
-        super().__init__(datasets=datasets,
-                         datasets_path=datasets_path,
-                         onnx_model=onnx_model,
-                         batch_size=hnsw_batch_size,
-                         score_function=score_function,
-                         run_name=run_name)
-        self.hnsw_store_n = hnsw_store_n
-        self.hnsw_ef_search = hnsw_ef_search
-        self.hnsw_ef_construction = hnsw_ef_construction
-        self.ce = CrossEncoder(model_path=ce_model)
-        self.ce_batch_size = ce_batch_size
-        self.reranker = Rerank(model=self.ce, batch_size=self.ce_batch_size)
-
-    def _rerank_pipeline(self,
-                         corpus: Dict[str, Dict[str, str]],
-                         queries: Dict[str, str]) \
-            -> Dict[str, Dict[str, float]]:
-        """
-        perform all the rerank steps of the pipeline.
-        :param corpus: the corpus of a specific dataset
-        :param queries: the queries of this dataset
-        :return  the reranked results.
-        """
-        faiss_search = HNSWFaissSearch(self.onnx_model,
-                                       batch_size=self.bs,
-                                       hnsw_store_n=self.hnsw_store_n,
-                                       hnsw_ef_search=self.hnsw_ef_search,
-                                       hnsw_ef_construction=self.hnsw_ef_construction)
-        self.retriever = EvaluateRetrieval(faiss_search, score_function=self.score_func)
-        faiss_results = self.retriever.retrieve(corpus=corpus, queries=queries)
-        ce_rerank_results = self.reranker.rerank(corpus=corpus,
-                                                 queries=queries,
-                                                 results=faiss_results,
-                                                 top_k=self.k)
-        return ce_rerank_results
-
-    def experiment_pipeline(self):
-        """
-        The full pipeline of the experiment. The steps of this pipeline are:
-        1) Index the documents by their embeddings extracted by a bi-encoder in faiss
-        2) Rerank the previous results using a cross encoder
-        Finally, evaluate the results and log the metrics to MLFlow server.
-        """
-        for dataset in self.dataset_paths:
-            corpus, queries, qrels = GenericDataLoader(data_folder=dataset).load(split='test')
-            rerank_results = self._rerank_pipeline(corpus=corpus, queries=queries)
-            self._eval_pipeline(qrels=qrels, results=rerank_results, dataset=dataset)
-
-
-class HNSWEMonoT5xperiment(Experiment):
-    """
-    A class that represents the experiment where the first step is hswn and the second one a cross encoder
-    """
-
-    def __init__(self,
-                 datasets: List[str],
-                 datasets_path: str,
-                 onnx_model: OnnxBERT,
-                 token_false: str,
-                 token_true: str,
-                 ce_model: str,
-                 hnsw_batch_size: int,
-                 ce_batch_size: int,
-                 top_k: int,
-                 score_function: str,
-                 run_name: str,
-                 hnsw_store_n: int = 512,
-                 hnsw_ef_search: int = 128,
-                 hnsw_ef_construction: int = 200,
-                 ):
-        """
-         Initialize the class by load ing the models
-        :param datasets: a list with the datasets to evaluate
-        :param datasets_path: the path we stored the datasets
-        :param onnx_model: the onnx bi-encoder
-        :param token_false: the token that represents the false token
-        :param token_true: the token that represents the true token
-        :param ce_model: the hf card of the cross encoder model
-        :param hnsw_batch_size: the batch size for the bi-encoder step in hswn algorithm.
-        :param ce_batch_size: the batch size for the cross-encoder step
-        :param top_k: retrieve top_k results using the bi-encoder
-        :param score_function: the similarity metric
-        """
-        self.k = top_k
-        super().__init__(datasets=datasets,
-                         datasets_path=datasets_path,
-                         onnx_model=onnx_model,
-                         batch_size=hnsw_batch_size,
-                         score_function=score_function,
-                         run_name=run_name)
-        self.hnsw_store_n = hnsw_store_n
-        self.hnsw_ef_search = hnsw_ef_search
-        self.hnsw_ef_construction = hnsw_ef_construction
-        self.ce = MonoT5(model_path=ce_model, token_true=token_true, token_false=token_false)
-        self.ce_batch_size = ce_batch_size
-        self.reranker = Rerank(model=self.ce, batch_size=self.ce_batch_size)
