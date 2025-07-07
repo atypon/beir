@@ -1,38 +1,15 @@
-from os import path
-from setuptools import setup, find_packages
 import re
+import setuptools
+from os import path
 
 requirements_file = path.join(path.dirname(__file__), "requirements.in")
 requirements = [r for r in open(requirements_file).read().split("\n") if not re.match(r"^\-", r)]
 
-with open("README.md", mode="r", encoding="utf-8") as readme_file:
-    readme = readme_file.read()
-
-optional_packages = {
-    "tf" : ['tensorflow>=2.2.0', 'tensorflow-text', 'tensorflow-hub']
-}
-
-setup(
-    name="beir",
-    version="1.0.0",
-    author="Nandan Thakur",
-    author_email="nandant@gmail.com",
-    description="A Heterogeneous Benchmark for Information Retrieval",
-    long_description=readme,
-    long_description_content_type="text/markdown",
-    license="Apache License 2.0",
-    url="https://github.com/beir-cellar/beir",
-    download_url="https://github.com/beir-cellar/beir/archive/v1.0.0.zip",
-    packages=find_packages(),
-    python_requires='>=3.6',
-    install_requires=requirements,
-    extras_require=optional_packages,
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.6",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence"
-    ],
-    keywords="Information Retrieval Transformer Networks BERT PyTorch IR NLP deep learning"
+setuptools.setup(
+  name="beir_extensions",
+  version="0.1",
+  url="https://github.com/atypon/beir.git",
+  packages=setuptools.find_packages(),
+  install_requires=requirements,
+  description='Extensions to BEIR for evaluation of dense retrieval models',
 )

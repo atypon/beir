@@ -1,25 +1,8 @@
 datasets:
-  scifact:
-    query_instruction: "Represent this sentence for searching relevant passages:"
-    document_instruction: Null
-  trec-covid-beir:
-    query_instruction: "Represent this sentence for searching relevant passages:"
-    document_instruction: Null
-  fiqa:
-    query_instruction: "Represent this sentence for searching relevant passages:"
-    document_instruction: Null
-  quora:
-    query_instruction: "Represent this sentence for searching relevant passages:"
-    document_instruction: Null
   nfcorpus:
     query_instruction: "Represent this sentence for searching relevant passages:"
     document_instruction: Null
-  scidocs:
-    query_instruction: "Represent this sentence for searching relevant passages:"
-    document_instruction: Null
-  webis-touche2020:
-    query_instruction: "Represent this sentence for searching relevant passages:"
-    document_instruction: Null
+
 model:
   type: onnx
   batch_size: 32

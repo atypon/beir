@@ -3,13 +3,13 @@ import os
 from typing import Literal
 
 from beir.datasets.data_loader import GenericDataLoader
-from beir_extensions.models.base_model import CustomModel
 from beir.retrieval.search.lexical import BM25Search as BM25
 from beir.reranking.models.cross_encoder import CrossEncoder
 from beir.reranking import Rerank
 from beir.retrieval.evaluation import EvaluateRetrieval
 from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
 
+from beir_extensions.models.base_model import CustomModel
 from beir_extensions.models.onnx import OnnxModel
 from beir_extensions.models.sentence_transformers import \
     SentenceTransformersModel
@@ -53,6 +53,8 @@ class Experiment(object):
         self.cls = cls
         self.matryoshka_dim = matryoshka_dim
         self.score_func = score_function
+        if not os.path.isdir(self.results_dir):
+            os.mkdir(self.results_dir)
 
     def __setup_models_for_dataset(
         self,
@@ -85,14 +87,6 @@ class Experiment(object):
             score_function=self.score_func
         )
 
-    def __setup_result_dir(self):
-        """
-        Creates directory named after the current run to save json
-        file of results
-        """
-        if not os.path.isdir(self.results_dir):
-            os.mkdir(self.results_dir)
-
     def experiment_pipeline(self) -> tuple[dict[str, dict[str, float]], str]:
         """
         Run the complete pipeline
@@ -113,7 +107,8 @@ class Experiment(object):
             results = self.retriever.retrieve(corpus=corpus, queries=queries)
             metrics, results_path = self._eval_pipeline(
                 qrels=qrels,
-                results=results, dataset=dataset
+                results=results,
+                dataset=dataset
             )
             metrics_per_dataset[dataset] = metrics
             results_paths.append(results_path)
