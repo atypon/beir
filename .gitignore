@@ -1,3 +1,5 @@
+nohup.out
+
 # Custom added
 examples/**/datasets/
 examples/**/output/

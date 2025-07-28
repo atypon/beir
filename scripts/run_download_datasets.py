@@ -1,12 +1,12 @@
 import argparse
 import os
-from typing import List
-import yaml
 
 from beir import util
 
+from beir_extensions.configs import load_configurations
 
-def download_datasets(datasets: List[str], datasets_path: str) -> None:
+
+def download_datasets(datasets: list[str], datasets_path: str) -> None:
     """
     Function for downloading selected datasets
     :param datasets: list of dataset name to download
@@ -22,11 +22,15 @@ def download_datasets(datasets: List[str], datasets_path: str) -> None:
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--config',
-                            '-cf',
-                            help='The path of the config file that contains the datasets for download')
+    arg_parser.add_argument(
+        '--config',
+        '-cf',
+        help='Config file that contains the datasets to download.'
+    )
     args = arg_parser.parse_args()
 
-    with open(args.config) as config_file:
-        dataset_configs = yaml.safe_load(config_file)
-    download_datasets(datasets=dataset_configs['datasets'], datasets_path='datasets')
+    cfg = load_configurations(path=args.config)
+    download_datasets(
+        datasets=[dataset for dataset in cfg.datasets],
+        datasets_path='datasets'
+    )
